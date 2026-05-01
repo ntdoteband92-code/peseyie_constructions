@@ -1,19 +1,11 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { signOut } from '@/app/actions/auth'
 import { getInitials } from '@/lib/utils'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { LogOut, Settings, ChevronRight } from 'lucide-react'
+import { LogOut, Settings, ChevronRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
 function getBreadcrumbs(pathname: string) {
@@ -42,10 +34,24 @@ export default function Topbar() {
   const breadcrumbs = getBreadcrumbs(pathname)
   const displayName = profile?.full_name ?? user?.email ?? 'User'
 
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
   const handleSignOut = async () => {
+    setIsOpen(false)
     await authSignOut()
     router.push('/auth/login')
   }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <header
@@ -77,9 +83,14 @@ export default function Topbar() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-3 shrink-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 outline-none cursor-pointer">
+      <div className="flex items-center gap-3 shrink-0" ref={dropdownRef}>
+        <div className="relative">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 outline-none cursor-pointer"
+            aria-label="User menu"
+            aria-expanded={isOpen}
+          >
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
               style={{
@@ -97,31 +108,40 @@ export default function Topbar() {
                 <p className="text-xs text-gray-400 capitalize">{role}</p>
               )}
             </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-0.5">
-                <p className="text-sm font-medium leading-none truncate">{displayName}</p>
-                <p className="text-xs leading-none text-muted-foreground truncate">
-                  {user?.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => router.push('/settings')} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={handleSignOut}
-              className="text-red-600 focus:text-red-600 cursor-pointer"
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          </button>
+
+          {isOpen && (
+            <div
+              className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border py-1 z-50"
+              style={{ borderColor: 'rgba(0,0,0,0.08)' }}
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <div className="px-3 py-2 border-b" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsOpen(false)
+                  router.push('/settings')
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </button>
+
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )
