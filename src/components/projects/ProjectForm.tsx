@@ -262,18 +262,22 @@ export default function ProjectForm({
         <div className="md:col-span-2">
           <Label>Project Types</Label>
           <div className="mt-2 flex flex-wrap gap-2">
-            {PROJECT_TYPES.map((type) => (
-              <label key={type} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="project_type"
-                  value={type}
-                  defaultChecked={selectedTypes.includes(type)}
-                  className="rounded border-gray-300"
-                />
-                <span className="text-sm">{type}</span>
-              </label>
-            ))}
+            {PROJECT_TYPES.map((type) => {
+              const typeId = `project_type_${type.toLowerCase().replace(/\s+/g, '_')}`
+              return (
+                <label key={type} htmlFor={typeId} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={typeId}
+                    name="project_type"
+                    value={type}
+                    defaultChecked={selectedTypes.includes(type)}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">{type}</span>
+                </label>
+              )
+            })}
           </div>
         </div>
 
