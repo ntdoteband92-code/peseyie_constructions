@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { AppRole } from '@/lib/supabase/types'
+import { getMyProfile } from '@/app/actions/profile'
 
 interface Profile {
   id: string
@@ -35,20 +36,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Browser client — used ONLY for auth state detection (getSession, onAuthStateChange).
+  // Never used for direct table queries (those 401 because RLS blocks anon-key reads).
   const supabase = createClient()
 
-  const loadUserData = useCallback(async (userId: string) => {
+  const loadUserData = useCallback(async () => {
     try {
-      const [profileResult, roleResult] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('user_roles').select('role').eq('user_id', userId).single(),
-      ])
-      setProfile(profileResult.data ?? null)
-      setRole((roleResult.data?.role as AppRole) ?? null)
+      // Call a Server Action so profile/role are fetched with the service role key
+      // server-side, completely bypassing RLS. This eliminates the 401 errors that
+      // happen when the browser client tries to query profiles/user_roles directly.
+      const result = await getMyProfile()
+      if (result) {
+        setProfile(result.profile)
+        setRole(result.role)
+      } else {
+        setProfile(null)
+        setRole(null)
+      }
     } catch (e) {
       console.error('Error loading user data:', e)
+      setProfile(null)
+      setRole(null)
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -56,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
         if (session?.user) {
-          await loadUserData(session.user.id)
+          await loadUserData()
         }
       } catch (e) {
         console.error('Auth init error:', e)
@@ -71,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         setUser(session?.user ?? null)
         if (session?.user) {
-          await loadUserData(session.user.id)
+          await loadUserData()
         } else {
           setProfile(null)
           setRole(null)

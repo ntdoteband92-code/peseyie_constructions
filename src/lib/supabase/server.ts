@@ -43,6 +43,37 @@ export async function createClient() {
 }
 
 /**
+ * Auth-specific client using the ANON KEY — use ONLY in auth.ts (signIn/signOut).
+ *
+ * WHY: signInWithPassword must use the anon key so that Supabase SSR properly
+ * stores the user session in cookies that the browser client can read. Using
+ * the service role key for sign-in breaks client-side session detection.
+ */
+export async function createAuthClient() {
+  const cookieStore = await cookies()
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch {
+            // Can fail from Server Components during SSR
+          }
+        },
+      },
+    }
+  )
+}
+
+/**
  * Admin client without cookie context — for background jobs, cron routes,
  * invite flows, and any server code that doesn't need user identity.
  */

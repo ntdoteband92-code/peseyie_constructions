@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAuthClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const LoginSchema = z.object({
@@ -25,7 +25,7 @@ export async function signIn(
     return { error: validated.error.issues[0].message }
   }
 
-  const supabase = await createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.auth.signInWithPassword({
     email: validated.data.email,
     password: validated.data.password,
@@ -39,7 +39,7 @@ export async function signIn(
 }
 
 export async function signOut() {
-  const supabase = await createClient()
+  const supabase = await createAuthClient()
   await supabase.auth.signOut()
   redirect('/auth/login')
 }
