@@ -3,26 +3,15 @@ import { cookies } from 'next/headers'
 import type { Database } from './types'
 
 /**
- * Server-side Supabase client using the SERVICE ROLE KEY.
- *
- * Why service role (not anon key)?
- *  - With the anon key, every DB query is subject to RLS and requires a valid
- *    user session JWT in the cookie. If cookies aren't perfectly forwarded in
- *    a Server Action context, auth.getUser() returns null and all queries fail
- *    with 401 / empty results.
- *  - With the service role key, DB queries bypass RLS (safe on the server —
- *    we're in a trusted environment). auth.getUser() still validates the
- *    user's JWT from the cookie to confirm identity.
- *  - All mutation actions already enforce RBAC manually via requireRole(),
- *    so skipping RLS at the DB level does not reduce security.
- *
- * NEVER import or use this client in 'use client' files.
+ * Server-side Supabase client using the ANON KEY.
+ * This is used for all Server Components and Server Actions that need
+ * to act on behalf of the user (enforces RLS and auth.getUser() works properly).
  */
 export async function createClient() {
   const cookieStore = await cookies()
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
