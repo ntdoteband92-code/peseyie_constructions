@@ -58,7 +58,10 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole | null> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    if (!user) {
+      console.log('[requireRole] No user found from auth.getUser()')
+      return null
+    }
 
     const { data, error } = await supabase
       .from('user_roles')
@@ -66,11 +69,21 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole | null> {
       .eq('user_id', user.id)
       .single()
 
-    if (error || !data) return null
-    if (!isAppRole(data.role)) return null
-    if (!allowedRoles.includes(data.role)) return null
+    if (error || !data) {
+      console.log('[requireRole] Error fetching user_roles or no data:', error?.message)
+      return null
+    }
+    if (!isAppRole(data.role)) {
+      console.log('[requireRole] Role is not a valid AppRole:', data.role)
+      return null
+    }
+    if (!allowedRoles.includes(data.role)) {
+      console.log(`[requireRole] User role '${data.role}' not in allowed roles:`, allowedRoles)
+      return null
+    }
     return data.role
-  } catch {
+  } catch (err) {
+    console.log('[requireRole] Exception:', err)
     return null
   }
 }
@@ -119,13 +132,18 @@ export async function createProject(
   formData: FormData
 ): Promise<ProjectFormState> {
   try {
+    console.log('[createProject] Started with formData keys:', Array.from(formData.keys()))
     const role = await requireRole(['admin', 'manager', 'accountant'])
-    if (!role) return { error: 'Unauthorized - Insufficient permissions' }
+    if (!role) {
+      console.log('[createProject] requireRole failed')
+      return { error: 'Unauthorized - Insufficient permissions' }
+    }
 
     const rawData = Object.fromEntries(formData)
     const validated = ProjectSchema.omit({ project_type: true }).safeParse(rawData)
 
     if (!validated.success) {
+      console.log('[createProject] Validation failed:', validated.error.flatten().fieldErrors)
       return {
         errors: validated.error.flatten().fieldErrors,
         error: 'Validation failed',
@@ -133,23 +151,30 @@ export async function createProject(
     }
 
     const project_type = formData.getAll('project_type') as string[]
+    console.log('[createProject] Validation passed. project_type:', project_type)
 
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
+    console.log('[createProject] Attempting to insert into projects table...')
     const { error } = await supabase.from('projects').insert({
       ...validated.data,
       project_type,
       created_by: user?.id,
     })
 
-    if (error) return { error: error.message }
+    if (error) {
+      console.error('[createProject] Supabase insert error:', error)
+      return { error: error.message }
+    }
 
+    console.log('[createProject] Insert successful, revalidating path...')
     revalidatePath('/projects')
     return { success: true }
   } catch (err) {
+    console.error('[createProject] Uncaught exception:', err)
     return { error: err instanceof Error ? err.message : 'Something went wrong' }
   }
 }

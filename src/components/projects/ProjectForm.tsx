@@ -12,14 +12,14 @@ import { createProject, updateProject, type ProjectFormState } from '@/app/actio
 import type { ProjectListItem } from '@/app/actions/projects'
 
 const PROJECT_TYPES = [
-  'Road Construction',
-  'Blasting',
-  'Earthwork',
-  'Structural',
-  'Drainage',
-  'Bridge',
-  'Building',
-  'Other',
+  { value: 'road_construction', label: 'Road Construction' },
+  { value: 'blasting', label: 'Blasting' },
+  { value: 'earthwork', label: 'Earthwork' },
+  { value: 'structural', label: 'Structural' },
+  { value: 'drainage', label: 'Drainage' },
+  { value: 'bridge', label: 'Bridge' },
+  { value: 'building', label: 'Building' },
+  { value: 'other', label: 'Other' },
 ]
 
 const STATUS_OPTIONS = [
@@ -263,18 +263,18 @@ export default function ProjectForm({
           <Label>Project Types</Label>
           <div className="mt-2 flex flex-wrap gap-2">
             {PROJECT_TYPES.map((type) => {
-              const typeId = `project_type_${type.toLowerCase().replace(/\s+/g, '_')}`
+              const typeId = `project_type_${type.value}`
               return (
-                <label key={type} htmlFor={typeId} className="flex items-center gap-2 cursor-pointer">
+                <label key={type.value} htmlFor={typeId} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     id={typeId}
                     name="project_type"
-                    value={type}
-                    defaultChecked={selectedTypes.includes(type)}
+                    value={type.value}
+                    defaultChecked={selectedTypes.includes(type.value)}
                     className="rounded border-gray-300"
                   />
-                  <span className="text-sm">{type}</span>
+                  <span className="text-sm">{type.label}</span>
                 </label>
               )
             })}
