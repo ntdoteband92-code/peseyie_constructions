@@ -8,7 +8,6 @@ export function createClient() {
     {
       auth: {
         persistSession: true,
-        storageKey: 'sb-osyndmombqnaerbkexyq-auth',
         storage: {
           getItem: (key) => {
             if (typeof window === 'undefined') return null

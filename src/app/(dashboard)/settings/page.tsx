@@ -3,9 +3,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings } from 'lucide-react'
-import CompanyProfileForm from '@/components/settings/CompanyProfileForm'
-import UsersTab from '@/components/settings/UsersTab'
-import DefaultRatesForm from '@/components/settings/DefaultRatesForm'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole, isAdmin, isManager } from '@/lib/supabase/types'
 
@@ -17,28 +14,38 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
-
-  // Fetch current user role via RPC
-  const { data } = await supabase.rpc('get_my_role')
-  let currentRole: AppRole
-  if (data && isAppRole(data)) {
-    currentRole = data
-  } else {
-    currentRole = 'viewer'
+  if (!user) {
+    redirect('/auth/login')
   }
+
+  let currentRole: AppRole = 'viewer'
+  try {
+    const { data } = await supabase.rpc('get_my_role')
+    if (data && isAppRole(data)) {
+      currentRole = data
+    }
+  } catch (e) {
+    console.error('Error getting role:', e)
+  }
+
   const isAdminUser = isAdmin(currentRole)
   const canEditSettings = isAdminUser || isManager(currentRole)
 
-  // Fetch org settings
-  const { data: orgSettings } = await supabase
-    .from('org_settings')
-    .select('*')
-    .single()
+  let orgSettings = null
+  try {
+    const { data } = await supabase
+      .from('org_settings')
+      .select('*')
+      .single()
+    orgSettings = data
+  } catch (e) {
+    console.error('Error getting org settings:', e)
+  }
 
-  // Fetch all users with profiles + roles (admin only)
-  const { data: allUsers } = isAdminUser
-    ? await supabase
+  let allUsers: unknown[] = []
+  if (isAdminUser) {
+    try {
+      const { data } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -49,11 +56,14 @@ export default async function SettingsPage() {
           user_roles (role)
         `)
         .order('created_at', { ascending: true })
-    : { data: [] }
+      allUsers = data ?? []
+    } catch (e) {
+      console.error('Error getting users:', e)
+    }
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -80,22 +90,42 @@ export default async function SettingsPage() {
           )}
         </TabsList>
 
-        {/* Company Profile */}
         <TabsContent value="company">
-          <CompanyProfileForm orgSettings={orgSettings} canEdit={canEditSettings} />
+          <div className="text-sm text-gray-500">
+            {orgSettings ? (
+              <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
+                {JSON.stringify(orgSettings, null, 2)}
+              </pre>
+            ) : (
+              <p>No organization settings found. Contact admin to configure.</p>
+            )}
+          </div>
         </TabsContent>
 
-        {/* Default Rates */}
         <TabsContent value="rates">
-          <DefaultRatesForm orgSettings={orgSettings} canEdit={canEditSettings} />
+          <div className="text-sm text-gray-500">
+            {orgSettings ? (
+              <div className="space-y-2">
+                <p>Retention: {orgSettings.default_retention_pct}%</p>
+                <p>TDS: {orgSettings.default_tds_pct}%</p>
+                <p>Labour Cess: {orgSettings.default_labour_cess_pct}%</p>
+              </div>
+            ) : (
+              <p>No rate settings found.</p>
+            )}
+          </div>
         </TabsContent>
 
-        {/* Users — admin only */}
-         {isAdminUser && (
-           <TabsContent value="users">
-             <UsersTab users={allUsers ?? []} currentUserId={user.id} />
-           </TabsContent>
-         )}
+        {isAdminUser && (
+          <TabsContent value="users">
+            <div className="text-sm text-gray-500">
+              <p>{allUsers.length} user(s) found.</p>
+              <pre className="bg-gray-100 p-4 rounded-lg overflow-auto mt-2">
+                {JSON.stringify(allUsers.slice(0, 5), null, 2)}
+              </pre>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

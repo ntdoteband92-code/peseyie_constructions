@@ -12,12 +12,10 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      id="login-submit-btn"
       className="w-full flex items-center justify-center gap-2 rounded-lg py-3 px-4 font-semibold text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
       style={{
         background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
         color: '#1a1f2e',
-        boxShadow: '0 4px 15px rgba(245,158,11,0.4)',
       }}
     >
       {pending ? (
@@ -48,7 +46,6 @@ export default function LoginPage() {
         background: 'linear-gradient(135deg, #0f1623 0%, #1a1f2e 50%, #0f1623 100%)',
       }}
     >
-      {/* Background decoration */}
       <div
         className="absolute inset-0 overflow-hidden pointer-events-none"
         aria-hidden="true"
@@ -64,7 +61,6 @@ export default function LoginPage() {
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Card */}
         <div
           className="rounded-2xl p-8 shadow-2xl"
           style={{
@@ -73,7 +69,6 @@ export default function LoginPage() {
             backdropFilter: 'blur(20px)',
           }}
         >
-          {/* Logo / Branding */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <div
@@ -91,7 +86,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Form */}
           <form action={formAction} className="space-y-5">
             <div className="space-y-1.5">
               <label
@@ -112,8 +106,7 @@ export default function LoginPage() {
                 style={{
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.1)',
-                  '--tw-ring-color': '#f59e0b',
-                } as React.CSSProperties}
+                }}
               />
             </div>
 
@@ -136,8 +129,7 @@ export default function LoginPage() {
                 style={{
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.1)',
-                  '--tw-ring-color': '#f59e0b',
-                } as React.CSSProperties}
+                }}
               />
             </div>
 
@@ -149,7 +141,6 @@ export default function LoginPage() {
                   border: '1px solid rgba(239,68,68,0.2)',
                   color: '#fca5a5',
                 }}
-                role="alert"
               >
                 {state.error}
               </div>
@@ -158,18 +149,14 @@ export default function LoginPage() {
             <SubmitButton />
           </form>
 
-          {/* Footer note */}
           <p
             className="text-center text-xs mt-6"
             style={{ color: 'rgba(255,255,255,0.25)' }}
           >
             Access restricted to authorised personnel only.
-            <br />
-            Contact your administrator to request access.
           </p>
         </div>
 
-        {/* Version tag */}
         <p
           className="text-center text-xs mt-4"
           style={{ color: 'rgba(255,255,255,0.15)' }}

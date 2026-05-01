@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import type { Database } from '@/lib/supabase/types'
+import type { Database } from './types'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -14,28 +14,26 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
+          cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+            supabaseResponse.cookies.set({
+              name,
+              value,
+              ...options,
+            })
+          })
         },
       },
     }
   )
 
-  // Refresh session — IMPORTANT: do not add any logic between createServerClient
-  // and supabase.auth.getUser() to avoid session bugs.
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 
-  // Allow public routes
-  const publicPaths = ['/auth/login', '/auth/callback', '/api/keepalive']
+  const publicPaths = ['/auth/login', '/auth/callback']
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
   if (!user && !isPublic) {

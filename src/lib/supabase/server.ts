@@ -1,9 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
-import type { Database, AppRole } from './types'
+import type { Database } from './types'
 
-export async function createClient(): Promise<SupabaseClient<Database>> {
+export async function createClient() {
   const cookieStore = await cookies()
 
   return createServerClient<Database>(
@@ -20,20 +19,10 @@ export async function createClient(): Promise<SupabaseClient<Database>> {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Called from a Server Component — cookies cannot be set.
-            // Middleware handles session refresh.
+            // Ignore errors from Server Components
           }
         },
       },
     }
-  )
-}
-
-/** Service-role client — ONLY for Server Actions that require admin privileges.
- *  Never import this in client components or expose to the browser. */
-export async function createAdminClient(): Promise<SupabaseClient<Database>> {
-  return createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }

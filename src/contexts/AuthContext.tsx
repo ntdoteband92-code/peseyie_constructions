@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import type { AppRole } from '@/lib/supabase/types'
 
 interface Profile {
@@ -19,7 +19,6 @@ interface AuthContextValue {
   role: AppRole | null
   isLoading: boolean
   signOut: () => Promise<void>
-  refreshAuth: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -27,8 +26,7 @@ const AuthContext = createContext<AuthContextValue>({
   profile: null,
   role: null,
   isLoading: true,
-  signOut: async () => { },
-  refreshAuth: async () => { },
+  signOut: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -39,56 +37,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClient()
 
-  const loadUserData = useCallback(
-    async (userId: string, accessToken?: string) => {
-      const headers: Record<string, string> = {}
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`
-      }
+  const loadUserData = useCallback(async (userId: string) => {
+    try {
       const [profileResult, roleResult] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).single(),
         supabase.from('user_roles').select('role').eq('user_id', userId).single(),
       ])
       setProfile(profileResult.data ?? null)
       setRole((roleResult.data?.role as AppRole) ?? null)
-    },
-    [supabase]
-  )
-
-  const refreshAuth = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    setUser(session?.user ?? null)
-    if (session?.user) {
-      await loadUserData(session.user.id, session.access_token)
-    } else {
-      setProfile(null)
-      setRole(null)
+    } catch (e) {
+      console.error('Error loading user data:', e)
     }
-  }, [supabase, loadUserData])
+  }, [supabase])
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await loadUserData(session.user.id, session.access_token)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          await loadUserData(session.user.id)
+        }
+      } catch (e) {
+        console.error('Auth init error:', e)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
+
     init()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await loadUserData(session.user.id, session.access_token)
-      } else {
-        setProfile(null)
-        setRole(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          await loadUserData(session.user.id)
+        } else {
+          setProfile(null)
+          setRole(null)
+        }
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    })
+    )
 
     return () => subscription.unsubscribe()
   }, [supabase, loadUserData])
@@ -101,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase])
 
   return (
-    <AuthContext.Provider value={{ user, profile, role, isLoading, signOut, refreshAuth }}>
+    <AuthContext.Provider value={{ user, profile, role, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   )

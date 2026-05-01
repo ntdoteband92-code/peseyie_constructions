@@ -6,12 +6,11 @@ import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Peseyie Constructions',
-    template: '%s | Peseyie Constructions',
+    default: 'Pespeyie Constructions',
+    template: '%s | Pespeyie Constructions',
   },
-  description:
-    'Construction Operations Management System — Peseyie Constructions, Northeast India',
-  robots: { index: false, follow: false }, // Private internal tool
+  description: 'Construction Operations Management System',
+  robots: { index: false, follow: false },
 }
 
 export default function RootLayout({
@@ -21,20 +20,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className="antialiased"
-      >
+      <body className="antialiased">
         <QueryProvider>
           <AuthProvider>
             {children}
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              toastOptions={{
-                duration: 4000,
-              }}
-            />
+            <Toaster position="top-right" richColors closeButton />
           </AuthProvider>
         </QueryProvider>
       </body>

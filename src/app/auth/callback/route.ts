@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
@@ -14,6 +14,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Auth code exchange failed — redirect to login with error
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed`)
+  return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`)
 }

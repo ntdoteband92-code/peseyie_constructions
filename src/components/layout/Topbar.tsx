@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { signOut } from '@/app/actions/auth'
 import { getInitials } from '@/lib/utils'
@@ -25,7 +26,6 @@ function getBreadcrumbs(pathname: string) {
     const label = seg
       .replace(/-/g, ' ')
       .replace(/\b\w/g, (c) => c.toUpperCase())
-    // Skip UUIDs in breadcrumbs
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(seg)) {
       crumbs.push({ label: 'Detail', href: path })
     } else {
@@ -37,9 +37,15 @@ function getBreadcrumbs(pathname: string) {
 
 export default function Topbar() {
   const pathname = usePathname()
-  const { user, profile, role } = useAuth()
+  const router = useRouter()
+  const { user, profile, role, signOut: authSignOut } = useAuth()
   const breadcrumbs = getBreadcrumbs(pathname)
   const displayName = profile?.full_name ?? user?.email ?? 'User'
+
+  const handleSignOut = async () => {
+    await authSignOut()
+    router.push('/auth/login')
+  }
 
   return (
     <header
@@ -47,18 +53,13 @@ export default function Topbar() {
       style={{
         background: 'rgba(255,255,255,0.98)',
         borderColor: 'rgba(0,0,0,0.06)',
-        backdropFilter: 'blur(8px)',
       }}
     >
-      {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 min-w-0 ml-10 md:ml-0">
         {breadcrumbs.map((crumb, i) => (
           <span key={crumb.href} className="flex items-center gap-1 min-w-0">
             {i > 0 && (
-              <ChevronRight
-                className="h-3.5 w-3.5 shrink-0"
-                style={{ color: '#94a3b8' }}
-              />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" style={{ color: '#94a3b8' }} />
             )}
             {i === breadcrumbs.length - 1 ? (
               <span className="text-sm font-semibold text-gray-900 truncate">
@@ -76,13 +77,9 @@ export default function Topbar() {
         ))}
       </nav>
 
-{/* Right side: user avatar dropdown */}
       <div className="flex items-center gap-3 shrink-0">
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 outline-none cursor-pointer"
-            aria-label="User menu"
-          >
+          <DropdownMenuTrigger className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 outline-none cursor-pointer">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
               style={{
@@ -111,15 +108,13 @@ export default function Topbar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <Link href="/settings" className="flex items-center w-full">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
+            <DropdownMenuItem onSelect={() => router.push('/settings')} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut()}
+              onSelect={handleSignOut}
               className="text-red-600 focus:text-red-600 cursor-pointer"
             >
               <LogOut className="mr-2 h-4 w-4" />
