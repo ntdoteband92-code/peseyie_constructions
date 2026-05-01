@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import type { User, Session } from '@supabase/supabase-js'
 import type { AppRole } from '@/lib/supabase/types'
 
 interface Profile {
@@ -40,7 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   const loadUserData = useCallback(
-    async (userId: string) => {
+    async (userId: string, accessToken?: string) => {
+      const headers: Record<string, string> = {}
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`
+      }
       const [profileResult, roleResult] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).single(),
         supabase.from('user_roles').select('role').eq('user_id', userId).single(),
@@ -52,12 +56,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const refreshAuth = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    setUser(user)
-    if (user) {
-      await loadUserData(user.id)
+    const { data: { session } } = await supabase.auth.getSession()
+    setUser(session?.user ?? null)
+    if (session?.user) {
+      await loadUserData(session.user.id, session.access_token)
     } else {
       setProfile(null)
       setRole(null)
@@ -65,24 +67,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, loadUserData])
 
   useEffect(() => {
-    // Initial load
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-      if (user) await loadUserData(user.id)
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await loadUserData(session.user.id, session.access_token)
+      }
       setIsLoading(false)
     }
     init()
 
-    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        await loadUserData(session.user.id)
+        await loadUserData(session.user.id, session.access_token)
       } else {
         setProfile(null)
         setRole(null)
