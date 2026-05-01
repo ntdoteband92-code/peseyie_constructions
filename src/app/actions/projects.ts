@@ -29,15 +29,15 @@ export async function getMyRole(): Promise<AppRole | null> {
 const ProjectSchema = z.object({
   project_name: z.string().min(1, 'Project name is required'),
   contract_number: z.string().optional(),
-  tender_id: z.string().uuid().optional().nullable(),
+  tender_id: z.string().transform(v => v === '' ? null : v).optional().nullable(),
   client_name: z.string().optional(),
   client_contact_person: z.string().optional(),
   client_phone: z.string().optional(),
   contract_value: z.coerce.number().min(0).default(0),
-  contract_date: z.string().optional().nullable(),
-  start_date: z.string().optional().nullable(),
-  expected_end_date: z.string().optional().nullable(),
-  actual_end_date: z.string().optional().nullable(),
+  contract_date: z.string().transform(v => v === '' ? null : v).optional().nullable(),
+  start_date: z.string().transform(v => v === '' ? null : v).optional().nullable(),
+  expected_end_date: z.string().transform(v => v === '' ? null : v).optional().nullable(),
+  actual_end_date: z.string().transform(v => v === '' ? null : v).optional().nullable(),
   location_district: z.string().optional(),
   location_state: z.string().optional(),
   project_type: z.array(z.string()).optional().default([]),
@@ -45,7 +45,7 @@ const ProjectSchema = z.object({
   security_deposit: z.coerce.number().optional().nullable(),
   security_deposit_status: z.string().optional().nullable(),
   scope_of_work: z.string().optional(),
-  project_manager_id: z.string().uuid().optional().nullable(),
+  project_manager_id: z.string().transform(v => v === '' ? null : v).optional().nullable(),
 })
 
 export type ProjectFormState = {
@@ -123,7 +123,7 @@ export async function createProject(
     if (!role) return { error: 'Unauthorized - Insufficient permissions' }
 
     const rawData = Object.fromEntries(formData)
-    const validated = ProjectSchema.safeParse(rawData)
+    const validated = ProjectSchema.omit({ project_type: true }).safeParse(rawData)
 
     if (!validated.success) {
       return {
@@ -132,6 +132,8 @@ export async function createProject(
       }
     }
 
+    const project_type = formData.getAll('project_type') as string[]
+
     const supabase = await createClient()
     const {
       data: { user },
@@ -139,6 +141,7 @@ export async function createProject(
 
     const { error } = await supabase.from('projects').insert({
       ...validated.data,
+      project_type,
       created_by: user?.id,
     })
 
