@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getBlastLogs } from '@/app/actions/blast-logs'
+import { getBlastLogs, getBlastSummary } from '@/app/actions/blast-logs'
 import { getProjects } from '@/app/actions/projects'
 import BlastLogsClient from '@/components/blast-logs/BlastLogsClient'
 
@@ -12,12 +12,13 @@ export default async function BlastLogsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const [blastLogs, projectsData] = await Promise.all([
+  const [blastLogs, blastSummary, projectsData] = await Promise.all([
     getBlastLogs().catch(() => []),
+    getBlastSummary().catch(() => []),
     getProjects().catch(() => []),
   ])
 
   const projects = projectsData.map((p: any) => ({ id: p.id, project_name: p.project_name }))
 
-  return <BlastLogsClient blastLogs={blastLogs} projects={projects} />
+  return <BlastLogsClient blastLogs={blastLogs} blastSummary={blastSummary} projects={projects} />
 }

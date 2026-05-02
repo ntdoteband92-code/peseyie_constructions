@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -35,7 +49,7 @@ const ExpenseSchema = z.object({
 export type ExpenseFormState = { success?: boolean; error?: string; errors?: Record<string, string[]> } | null
 
 export async function getExpenses(projectId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('expenses')
     .select('*, project:projects(id, project_name)')
@@ -52,7 +66,7 @@ export async function getExpenses(projectId?: string) {
 }
 
 export async function getExpense(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase.from('expenses').select('*').eq('id', id).single() as any
   if (error) throw error
   return data as any
@@ -70,8 +84,9 @@ export async function createExpense(_prevState: ExpenseFormState, formData: Form
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await (supabase.from('expenses') as any).insert({
+    const { error } = await (adminClient.from('expenses') as any).insert({
       ...validated.data,
       created_by: user?.id,
     } as any)
@@ -95,8 +110,8 @@ export async function updateExpense(id: string, _prevState: ExpenseFormState, fo
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
     }
 
-    const supabase = await createClient()
-    const { error } = await (supabase.from('expenses') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('expenses') as any)
       .update({ ...validated.data, updated_at: new Date().toISOString() })
       .eq('id', id)
 
@@ -112,8 +127,8 @@ export async function updateExpense(id: string, _prevState: ExpenseFormState, fo
 export async function deleteExpense(id: string): Promise<{ error?: string }> {
   try {
     await requireRole(['admin', 'manager'])
-    const supabase = await createClient()
-    const { error } = await (supabase.from('expenses') as any).update({ is_deleted: true }).eq('id', id)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('expenses') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/financials')
     revalidatePath('/projects')
@@ -124,7 +139,7 @@ export async function deleteExpense(id: string): Promise<{ error?: string }> {
 }
 
 export async function getExpenseSummary() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('expenses')
     .select('category, amount, expense_date') as any
@@ -160,7 +175,7 @@ const IncomeSchema = z.object({
 })
 
 export async function getIncomeEntries(projectId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('income_entries')
     .select('*, project:projects(id, project_name), ra_bill:ra_bills(id, bill_number)')
@@ -186,8 +201,9 @@ export async function createIncomeEntry(_prevState: ExpenseFormState, formData: 
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await supabase.from('income_entries').insert({
+    const { error } = await adminClient.from('income_entries').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)

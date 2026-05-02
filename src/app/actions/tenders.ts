@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -47,7 +61,7 @@ export type TenderFormState = {
 } | null
 
 export async function getTenders() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('tenders')
     .select('*')
@@ -59,7 +73,7 @@ export async function getTenders() {
 }
 
 export async function getTender(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('tenders')
     .select('*')
@@ -91,8 +105,9 @@ export async function createTender(
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await supabase.from('tenders').insert({
+    const { error } = await adminClient.from('tenders').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)
@@ -126,8 +141,8 @@ export async function updateTender(
 
     const status = formData.get('status') as string
 
-    const supabase = await createClient()
-    const { error } = await (supabase.from('tenders') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('tenders') as any)
       .update({
         ...validated.data,
         status,
@@ -157,6 +172,7 @@ export async function convertTenderToProject(
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
     const tender = await getTender(tenderId)
     if (!tender) return { error: 'Tender not found' }
@@ -181,7 +197,7 @@ export async function convertTenderToProject(
       created_by: user?.id,
     }
 
-    const { data: project, error: projectError } = await supabase
+    const { data: project, error: projectError } = await adminClient
       .from('projects')
       .insert(projectData as any)
       .select('id')
@@ -189,7 +205,7 @@ export async function convertTenderToProject(
 
     if (projectError) return { error: projectError.message }
 
-    await (supabase.from('tenders') as any)
+    await (adminClient.from('tenders') as any)
       .update({
         status: 'awarded',
         converted_project_id: (project as any).id,
@@ -211,8 +227,8 @@ export async function updateTenderStatus(
   try {
     await requireRole(['admin', 'manager', 'accountant'])
 
-    const supabase = await createClient()
-    const { error } = await (supabase.from('tenders') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('tenders') as any)
       .update({ status, updated_at: new Date().toISOString() } as any)
       .eq('id', id) as any
 

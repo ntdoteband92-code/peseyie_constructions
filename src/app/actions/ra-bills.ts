@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
@@ -23,17 +23,29 @@ export type RaBillFormState = {
 } | null
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error) throw error
-  if (!data || !allowedRoles.includes(data)) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+    if (error) throw error
+    if (!data || !allowedRoles.includes(data.role as AppRole)) {
+      throw new Error('Unauthorized')
+    }
+    return data.role
+  } catch {
     throw new Error('Unauthorized')
   }
-  return data
 }
 
 export async function getRaBills(projectId: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data: bills, error } = await supabase
     .from('ra_bills')
     .select(`
@@ -50,7 +62,7 @@ export async function getRaBills(projectId: string) {
 }
 
 export async function getRaBill(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data: bill, error } = await supabase
     .from('ra_bills')
     .select(`
@@ -66,7 +78,7 @@ export async function getRaBill(id: string) {
 }
 
 export async function getNextBillNumber(projectId: string): Promise<string> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('ra_bills')
     .select('bill_number', { count: 'exact', head: true })
@@ -100,6 +112,7 @@ export async function createRaBill(
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
     const deductionsRaw = formData.getAll('deduction_type') as string[]
     const deductionAmountsRaw = formData.getAll('deduction_amount') as string[]
@@ -116,7 +129,7 @@ export async function createRaBill(
     const totalDeductions = deductions.reduce((sum, d) => sum + d.amount, 0)
     const netPayable = validated.data.gross_amount - totalDeductions
 
-    const { data: bill, error: billError } = await supabase
+    const { data: bill, error: billError } = await adminClient
       .from('ra_bills')
       .insert({
         ...validated.data,
@@ -137,7 +150,7 @@ export async function createRaBill(
         percentage: d.percentage,
       }))
 
-      const { error: dedError } = await supabase
+      const { error: dedError } = await adminClient
         .from('ra_bill_deductions')
         .insert(deductionRecords as any)
 
@@ -159,8 +172,8 @@ export async function updateRaBillStatus(
   try {
     await requireRole(['admin', 'manager', 'accountant'])
 
-    const supabase = await createClient()
-    const { error } = await (((supabase as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (((adminClient as any)
       .from('ra_bills'))
       .update({ status, updated_at: new Date().toISOString() } as any)
       .eq('id', billId) as any)
@@ -190,8 +203,9 @@ export async function addRaBillPayment(
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await supabase.from('ra_bill_payments').insert({
+    const { error } = await adminClient.from('ra_bill_payments').insert({
       ra_bill_id: billId,
       amount_received: data.amount_received,
       payment_date: data.payment_date,
@@ -201,7 +215,7 @@ export async function addRaBillPayment(
 
     if (error) return { error: error.message }
 
-    const { data: bill } = await supabase
+    const { data: bill } = await adminClient
       .from('ra_bills')
       .select('id, ra_bill_payments(amount_received)')
       .eq('id', billId)
@@ -211,7 +225,7 @@ export async function addRaBillPayment(
       const totalReceived = (bill.ra_bill_payments as { amount_received: number }[])
         .reduce((sum, p) => sum + p.amount_received, 0)
 
-      const { data: billFull } = await supabase
+      const { data: billFull } = await adminClient
         .from('ra_bills')
         .select('net_payable')
         .eq('id', billId)
@@ -220,7 +234,7 @@ export async function addRaBillPayment(
       const netPayable = billFull?.net_payable ?? 0
       const newStatus = totalReceived >= netPayable ? 'payment_released' : 'partially_paid'
 
-      await ((supabase as any)
+      await ((adminClient as any)
         .from('ra_bills'))
         .update({ status: newStatus, updated_at: new Date().toISOString() } as any)
         .eq('id', billId) as any
@@ -240,8 +254,8 @@ export async function deleteRaBill(
   try {
     await requireRole(['admin', 'manager'])
 
-    const supabase = await createClient()
-    const { error } = await ((supabase as any)
+    const adminClient = await createAdminClient()
+    const { error } = await ((adminClient as any)
       .from('ra_bills'))
       .update({ is_deleted: true } as any)
       .eq('id', billId) as any
@@ -256,7 +270,7 @@ export async function deleteRaBill(
 }
 
 export async function getRaBillPDFData(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data: bill, error } = await supabase
     .from('ra_bills')
     .select(`

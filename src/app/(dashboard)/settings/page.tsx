@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings } from 'lucide-react'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole, isAdmin, isManager } from '@/lib/supabase/types'
+import CompanyProfileForm from '@/components/settings/CompanyProfileForm'
 
 export const metadata: Metadata = { title: 'Settings' }
 
@@ -20,9 +21,14 @@ export default async function SettingsPage() {
 
   let currentRole: AppRole = 'viewer'
   try {
-    const { data } = await supabase.rpc('get_my_role')
-    if (data && isAppRole(data)) {
-      currentRole = data
+    const adminClient = await createAdminClient()
+    const { data } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+    if (data && isAppRole(data.role)) {
+      currentRole = data.role
     }
   } catch (e) {
     console.error('Error getting role:', e)
@@ -33,7 +39,8 @@ export default async function SettingsPage() {
 
   let orgSettings = null
   try {
-    const { data } = await supabase
+    const adminClient = await createAdminClient()
+    const { data } = await adminClient
       .from('org_settings')
       .select('*')
       .single()
@@ -45,7 +52,8 @@ export default async function SettingsPage() {
   let allUsers: unknown[] = []
   if (isAdminUser) {
     try {
-      const { data } = await supabase
+      const adminClient = await createAdminClient()
+      const { data } = await adminClient
         .from('profiles')
         .select(`
           id,
@@ -91,15 +99,19 @@ export default async function SettingsPage() {
         </TabsList>
 
         <TabsContent value="company">
-          <div className="text-sm text-gray-500">
-            {orgSettings ? (
-              <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-                {JSON.stringify(orgSettings, null, 2)}
-              </pre>
-            ) : (
-              <p>No organization settings found. Contact admin to configure.</p>
-            )}
-          </div>
+          {canEditSettings ? (
+            <CompanyProfileForm orgSettings={orgSettings} canEdit={canEditSettings} />
+          ) : (
+            <div className="text-sm text-gray-500">
+              {orgSettings ? (
+                <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
+                  {JSON.stringify(orgSettings, null, 2)}
+                </pre>
+              ) : (
+                <p>No organization settings found. Contact admin to configure.</p>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="rates">

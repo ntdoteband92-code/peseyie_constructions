@@ -3,6 +3,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import QueryProvider from '@/components/providers/QueryProvider'
 import { Toaster } from 'sonner'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 export const metadata: Metadata = {
   title: {
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="antialiased">
         <QueryProvider>
           <AuthProvider>
+            <LoadingOverlay />
             {children}
             <Toaster position="top-right" richColors closeButton />
           </AuthProvider>

@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -51,10 +65,16 @@ const BlastLogSchema = z.object({
   shot_firer_name: z.string().optional(),
   shot_firer_license_no: z.string().optional(),
   supervisor_on_duty: z.string().optional(),
+  misfires: z.coerce.number().optional().nullable(),
+  misfire_action: z.string().optional(),
+  clearance_confirmed: z.coerce.boolean().optional(),
+  police_intimation: z.string().optional(),
+  initiation_system: z.string().optional(),
+  volume_blasted_cum: z.coerce.number().optional().nullable(),
 })
 
 export async function getBlastLogs(projectId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('blast_logs')
     .select('*, project:projects(project_name)')
@@ -68,6 +88,65 @@ export async function getBlastLogs(projectId?: string) {
   return (data ?? []) as any
 }
 
+export async function getBlastSummary(projectId?: string) {
+  const supabase = await createAdminClient()
+  let query = supabase
+    .from('blast_logs')
+    .select(`
+      project_id,
+      project:projects(project_name),
+      blast_date,
+      explosive_qty_kg,
+      total_charge_kg,
+      misfires,
+      volume_blasted_cum,
+      no_of_holes
+    `)
+    .eq('is_deleted', false)
+
+  if (projectId) query = query.eq('project_id', projectId)
+
+  const { data, error } = await query as any
+  if (error) throw error
+
+  const logs = data ?? []
+
+  const summaryByProject: Record<string, {
+    project_name: string
+    total_shots: number
+    total_explosive_kg: number
+    total_charge_kg: number
+    total_misfires: number
+    total_volume_cum: number
+    last_blast_date: string | null
+  }> = {}
+
+  for (const log of logs) {
+    const pid = log.project_id
+    if (!summaryByProject[pid]) {
+      summaryByProject[pid] = {
+        project_name: log.project?.project_name ?? 'Unknown',
+        total_shots: 0,
+        total_explosive_kg: 0,
+        total_charge_kg: 0,
+        total_misfires: 0,
+        total_volume_cum: 0,
+        last_blast_date: null,
+      }
+    }
+    summaryByProject[pid].total_shots += 1
+    summaryByProject[pid].total_explosive_kg += Number(log.explosive_qty_kg ?? 0)
+    summaryByProject[pid].total_charge_kg += Number(log.total_charge_kg ?? 0)
+    summaryByProject[pid].total_misfires += Number(log.misfires ?? 0)
+    summaryByProject[pid].total_volume_cum += Number(log.volume_blasted_cum ?? 0)
+    if (!summaryByProject[pid].last_blast_date || log.blast_date > summaryByProject[pid].last_blast_date) {
+      summaryByProject[pid].last_blast_date = log.blast_date
+    }
+  }
+
+  return Object.entries(summaryByProject).map(([project_id, s]) => ({ project_id, ...s }))
+}
+
 export async function createBlastLog(_prevState: any, formData: FormData): Promise<any> {
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
@@ -75,8 +154,8 @@ export async function createBlastLog(_prevState: any, formData: FormData): Promi
     const validated = BlastLogSchema.safeParse(rawData)
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
-    const supabase = await createClient()
-    const { error } = await supabase.from('blast_logs').insert(validated.data as any)
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('blast_logs').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }
@@ -88,8 +167,8 @@ export async function createBlastLog(_prevState: any, formData: FormData): Promi
 export async function deleteBlastLog(id: string): Promise<any> {
   try {
     await requireRole(['admin', 'manager'])
-    const supabase = await createClient()
-    const { error } = await (supabase.from('blast_logs') as any).update({ is_deleted: true }).eq('id', id)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('blast_logs') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }

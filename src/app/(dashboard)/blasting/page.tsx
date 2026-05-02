@@ -1,17 +1,27 @@
 import type { Metadata } from 'next'
-import ModulePlaceholder from '@/components/layout/ModulePlaceholder'
-import { Flame } from 'lucide-react'
+import { getBlastLogs, getBlastSummary } from '@/app/actions/blast-logs'
+import { getProjects } from '@/app/actions/projects'
+import BlastLogsClient from '@/components/blast-logs/BlastLogsClient'
 
 export const metadata: Metadata = { title: 'Blasting Operations' }
 
-export default function BlastingPage() {
+export default async function BlastingPage() {
+  const [blastLogs, blastSummary, projects] = await Promise.all([
+    getBlastLogs().catch(() => []),
+    getBlastSummary().catch(() => []),
+    getProjects().catch(() => []),
+  ])
+
+  const projectOptions = projects.map((p: any) => ({
+    id: p.id,
+    project_name: p.project_name,
+  }))
+
   return (
-    <ModulePlaceholder
-      icon={Flame}
-      title="Blasting Operations"
-      description="Per-blast shot records, explosive consumption log, and blasting summary per project."
-      phase={5}
-      features={['Per-blast record (holes, depth, pattern, explosive qty)', 'Detonator count and initiation system', 'Misfire tracking and action taken', '500m clearance confirmation (mandatory)', 'Police/authority intimation reference', 'Blasting summary (total shots, explosive used, CUM blasted)']}
+    <BlastLogsClient
+      blastLogs={blastLogs}
+      blastSummary={blastSummary}
+      projects={projectOptions}
     />
   )
 }

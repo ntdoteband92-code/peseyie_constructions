@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { AppRole } from '@/lib/supabase/types'
 
 interface Profile {
@@ -33,9 +33,10 @@ export async function getMyProfile(): Promise<MyProfileResult | null> {
 
     if (!user) return null
 
+    const adminClient = await createAdminClient()
     const [profileResult, roleResult] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single() as any,
-      supabase.from('user_roles').select('role').eq('user_id', user.id).single() as any,
+      adminClient.from('profiles').select('*').eq('id', user.id).single() as any,
+      adminClient.from('user_roles').select('role').eq('user_id', user.id).single() as any,
     ])
 
     return {

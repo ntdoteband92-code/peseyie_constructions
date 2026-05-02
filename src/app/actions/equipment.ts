@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -59,7 +73,7 @@ const VehicleSchema = z.object({
 export type EquipmentFormState = { success?: boolean; error?: string; errors?: Record<string, string[]> } | null
 
 export async function getEquipment() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('equipment')
     .select('*, project:projects!equipment_assigned_project_id_fkey(id, project_name)')
@@ -71,7 +85,7 @@ export async function getEquipment() {
 }
 
 export async function getVehicles() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('vehicles')
     .select('*, project:projects!vehicles_assigned_project_id_fkey(id, project_name)')
@@ -83,7 +97,7 @@ export async function getVehicles() {
 }
 
 export async function getProjectsForSelection() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('projects')
     .select('id, project_name')
@@ -106,8 +120,9 @@ export async function createEquipment(_prevState: EquipmentFormState, formData: 
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await supabase.from('equipment').insert({
+    const { error } = await adminClient.from('equipment').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)
@@ -132,8 +147,9 @@ export async function createVehicle(_prevState: EquipmentFormState, formData: Fo
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
-    const { error } = await supabase.from('vehicles').insert({
+    const { error } = await adminClient.from('vehicles').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)
@@ -152,8 +168,8 @@ export async function updateEquipmentStatus(
 ): Promise<{ error?: string }> {
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
-    const supabase = await createClient()
-    const { error } = await (supabase.from('equipment') as any).update({ status, updated_at: new Date().toISOString() }).eq('id', id)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('equipment') as any).update({ status, updated_at: new Date().toISOString() }).eq('id', id)
 
     if (error) return { error: error.message }
     revalidatePath('/equipment')
@@ -166,8 +182,8 @@ export async function updateEquipmentStatus(
 export async function deleteEquipment(id: string): Promise<{ error?: string }> {
   try {
     await requireRole(['admin', 'manager'])
-    const supabase = await createClient()
-    const { error } = await (supabase.from('equipment') as any).update({ is_deleted: true }).eq('id', id)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('equipment') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/equipment')
     return {}

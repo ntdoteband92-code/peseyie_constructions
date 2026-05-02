@@ -7,15 +7,25 @@ import type { AppRole, Database } from '@/lib/supabase/types'
 
 // ─── Guard helper ───────────────────────────────────────────────────
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error) {
-    throw error
-  }
-  if (!data || !allowedRoles.includes(data)) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+    if (error) throw error
+    if (!data || !allowedRoles.includes(data.role as AppRole)) {
+      throw new Error('Unauthorized')
+    }
+    return data.role
+  } catch {
     throw new Error('Unauthorized')
   }
-  return data
 }
 
 // ─── Org Settings ───────────────────────────────────────────────────
@@ -46,6 +56,7 @@ export async function updateOrgSettings(
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
     const raw = Object.fromEntries(formData)
     const validated = OrgSettingsSchema.safeParse(raw)
@@ -53,7 +64,7 @@ export async function updateOrgSettings(
       return { error: validated.error.issues[0].message }
     }
 
-    const { data: existing } = await supabase
+    const { data: existing } = await adminClient
       .from('org_settings')
       .select('id')
       .single() as any
@@ -73,7 +84,7 @@ export async function updateOrgSettings(
         updated_at: new Date().toISOString()
       }
 
-      const { error } = await (((supabase as any)
+      const { error } = await (((adminClient as any)
         .from('org_settings'))
         .update(updateData as any)
         .eq('id', (existing as any).id) as any)
@@ -92,7 +103,7 @@ export async function updateOrgSettings(
         updated_by: user?.id ?? null
       }
 
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('org_settings')
         .insert(insertData as any)
       if (error) return { error: error.message }
@@ -181,10 +192,11 @@ export async function updateUserRole(
 
     const supabase = await createClient()
     const { data: adminUser } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
     // Prevent changing own role to non-admin if last admin
     if (adminUser.user?.id === userId && newRole !== 'admin') {
-      const { count } = await supabase
+      const { count } = await adminClient
         .from('user_roles')
         .select('*', { count: 'exact', head: true })
         .eq('role', 'admin')
@@ -194,7 +206,7 @@ export async function updateUserRole(
       }
     }
 
-    const { error } = await (supabase.from('user_roles') as any)
+    const { error } = await (adminClient.from('user_roles') as any)
       .update({ role: newRole, assigned_by: adminUser.user?.id } as any)
       .eq('user_id', userId) as any
 
@@ -230,14 +242,14 @@ export async function deactivateUser(
 
     // Check: don't deactivate last admin
     if (!activate) {
-      const { data: userRole } = await supabase
+      const { data: userRole } = await adminClient
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .single() as any
 
       if ((userRole as any)?.role === 'admin') {
-        const { count } = await supabase
+        const { count } = await adminClient
           .from('user_roles')
           .select('*', { count: 'exact', head: true })
           .eq('role', 'admin')
@@ -248,7 +260,7 @@ export async function deactivateUser(
     }
 
     // Update profile is_active flag
-    const { error: profileError } = await (supabase.from('profiles') as any)
+    const { error: profileError } = await (adminClient.from('profiles') as any)
       .update({ is_active: activate } as any)
       .eq('id', userId) as any
 

@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 export async function getDashboardData() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const [
     { count: activeProjectsCount, error: pError },

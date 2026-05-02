@@ -1,18 +1,32 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 export async function getReportSummary() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const [projectsResult, raBillsResult, expensesResult, workersResult, materialsResult, diaryResult] = await Promise.all([
     supabase.from('projects').select('id, project_name, project_status, project_value, start_date, end_date', { count: 'exact' }).eq('is_deleted', false),

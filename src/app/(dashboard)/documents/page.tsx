@@ -1,17 +1,20 @@
 import type { Metadata } from 'next'
-import ModulePlaceholder from '@/components/layout/ModulePlaceholder'
-import { FolderOpen } from 'lucide-react'
+import { getDocuments } from '@/app/actions/documents'
+import { getProjects } from '@/app/actions/projects'
+import DocumentsClient from '@/components/documents/DocumentsClient'
 
 export const metadata: Metadata = { title: 'Documents' }
 
-export default function DocumentsPage() {
-  return (
-    <ModulePlaceholder
-      icon={FolderOpen}
-      title="Documents"
-      description="Central document store with categories, expiry tracking, version history, and license expiry dashboard."
-      phase={6}
-      features={['Upload with project link, category, expiry date', 'PDF/image preview in browser', 'Version history for updated documents', 'License expiry dashboard (red/amber/green)', 'Search by project, category, keyword', 'Download and print support']}
-    />
-  )
+export default async function DocumentsPage() {
+  const [documents, projects] = await Promise.all([
+    getDocuments().catch(() => []),
+    getProjects().catch(() => []),
+  ])
+
+  const projectOptions = projects.map((p: any) => ({
+    id: p.id,
+    project_name: p.project_name,
+  }))
+
+  return <DocumentsClient documents={documents} projects={projectOptions} />
 }

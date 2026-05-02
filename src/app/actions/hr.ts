@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -40,7 +54,7 @@ const EmployeeSchema = z.object({
 })
 
 export async function getEmployees() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('employees')
     .select('*')
@@ -51,7 +65,7 @@ export async function getEmployees() {
 }
 
 export async function getEmployee(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase.from('employees').select('*').eq('id', id).single() as any
   if (error) throw error
   return data as any
@@ -66,7 +80,8 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('employees').insert({ ...validated.data, created_by: user?.id } as any)
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('employees').insert({ ...validated.data, created_by: user?.id } as any)
     if (error) return { error: error.message }
     revalidatePath('/hr')
     return { success: true }
@@ -85,7 +100,7 @@ const AttendanceSchema = z.object({
 })
 
 export async function getAttendance(projectId: string, month: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const startDate = `${month}-01`
   const endDate = `${month}-31`
   const { data, error } = await supabase
@@ -111,13 +126,14 @@ export async function markAttendance(entries: {
     await requireRole(['admin', 'manager', 'supervisor'])
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminClient = await createAdminClient()
 
     const records = entries.map(e => ({
       ...e,
       created_by: user?.id,
     }))
 
-    const { error } = await supabase.from('attendance').upsert(records as any, {
+    const { error } = await adminClient.from('attendance').upsert(records as any, {
       onConflict: 'project_id,entry_date,employee_id',
     })
     if (error) return { error: error.message }
@@ -138,7 +154,7 @@ const AdvanceSchema = z.object({
 })
 
 export async function getAdvances(employeeId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('advance_records')
     .select('*, employee:employees(full_name), project:projects(project_name)')
@@ -159,7 +175,8 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('advance_records').insert({
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('advance_records').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)
@@ -172,7 +189,7 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
 }
 
 export async function getOutstandingAdvances() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('advance_records')
     .select('*, employee:employees(full_name)')

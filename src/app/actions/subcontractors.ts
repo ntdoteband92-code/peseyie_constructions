@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -34,7 +48,7 @@ const SubcontractorSchema = z.object({
 })
 
 export async function getSubcontractors(search?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('subcontractors')
     .select('*')
@@ -51,7 +65,7 @@ export async function getSubcontractors(search?: string) {
 }
 
 export async function getSubcontractorById(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('subcontractors')
     .select('*')
@@ -68,8 +82,8 @@ export async function createSubcontractor(_prevState: any, formData: FormData): 
     const validated = SubcontractorSchema.safeParse(rawData)
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
-    const supabase = await createClient()
-    const { error } = await supabase.from('subcontractors').insert(validated.data as any)
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('subcontractors').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -85,8 +99,8 @@ export async function updateSubcontractor(id: string, _prevState: any, formData:
     const validated = SubcontractorSchema.partial().safeParse(rawData)
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
-    const supabase = await createClient()
-    const { error } = await (supabase.from('subcontractors') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('subcontractors') as any)
       .update(validated.data as any)
       .eq('id', id) as any
     if (error) return { error: error.message }
@@ -100,8 +114,8 @@ export async function updateSubcontractor(id: string, _prevState: any, formData:
 export async function deleteSubcontractor(id: string): Promise<any> {
   try {
     await requireRole(['admin'])
-    const supabase = await createClient()
-    const { error } = await (supabase.from('subcontractors') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('subcontractors') as any)
       .update({ is_deleted: true } as any)
       .eq('id', id) as any
     if (error) return { error: error.message }
@@ -126,7 +140,7 @@ const WorkOrderSchema = z.object({
 })
 
 export async function getWorkOrders(subcontractorId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('work_orders')
     .select('*, project:projects(project_name), subcontractor:subcontractors(name)')
@@ -147,8 +161,8 @@ export async function createWorkOrder(_prevState: any, formData: FormData): Prom
     const validated = WorkOrderSchema.safeParse(rawData)
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
-    const supabase = await createClient()
-    const { error } = await supabase.from('work_orders').insert(validated.data as any)
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('work_orders').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -164,8 +178,8 @@ export async function updateWorkOrder(id: string, _prevState: any, formData: For
     const validated = WorkOrderSchema.partial().safeParse(rawData)
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
-    const supabase = await createClient()
-    const { error } = await (supabase.from('work_orders') as any)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('work_orders') as any)
       .update(validated.data as any)
       .eq('id', id) as any
     if (error) return { error: error.message }

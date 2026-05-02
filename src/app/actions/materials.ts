@@ -1,16 +1,30 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { AppRole } from '@/lib/supabase/types'
 import { isAppRole } from '@/lib/supabase/types'
 
 async function getMyRole(): Promise<AppRole | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_my_role')
-  if (error || !data || !isAppRole(data)) return null
-  return data
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single() as any
+
+    if (error || !data) return null
+    if (!isAppRole(data.role)) return null
+    return data.role
+  } catch {
+    return null
+  }
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
@@ -28,7 +42,7 @@ const MaterialSchema = z.object({
 })
 
 export async function getMaterials() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase.from('materials').select('*').eq('is_deleted', false).order('material_name')
   if (error) throw error
   return (data ?? []) as any
@@ -43,7 +57,8 @@ export async function createMaterial(_prevState: any, formData: FormData): Promi
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('materials').insert({ ...validated.data, created_by: user?.id } as any)
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('materials').insert({ ...validated.data, created_by: user?.id } as any)
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }
@@ -67,7 +82,7 @@ const MaterialInwardSchema = z.object({
 })
 
 export async function getMaterialInward(projectId?: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   let query = supabase
     .from('material_inward')
     .select('*, material:materials(material_name, unit), project:projects(project_name)')
@@ -88,7 +103,8 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('material_inward').insert({
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('material_inward').insert({
       ...validated.data,
       inward_date: (validated.data as any).inward_date || new Date().toISOString().split('T')[0],
       created_by: user?.id,
@@ -121,7 +137,7 @@ const ExplosiveSchema = z.object({
 })
 
 export async function getExplosivesLog() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('explosives_register')
     .select('*')
@@ -140,7 +156,8 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('explosives_register').insert({
+    const adminClient = await createAdminClient()
+    const { error } = await adminClient.from('explosives_register').insert({
       ...validated.data,
       created_by: user?.id,
     } as any)

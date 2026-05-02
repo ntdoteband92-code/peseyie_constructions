@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
@@ -52,11 +52,13 @@ export default function ProjectForm({
   const action = isEdit && project ? updateProject.bind(null, project.id) : createProject
   const [state, formAction] = useActionState(action, INITIAL_STATE)
 
-  if (state?.success) {
-    toast.success(isEdit ? 'Project updated' : 'Project created')
-    router.push('/projects')
-    router.refresh()
-  }
+  useEffect(() => {
+    if (state?.success) {
+      toast.success(isEdit ? 'Project updated' : 'Project created')
+      router.push('/projects')
+      router.refresh()
+    }
+  }, [state, isEdit, router])
 
   if (state?.error && !state.errors) {
     toast.error(state.error)

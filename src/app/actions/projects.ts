@@ -12,7 +12,8 @@ export async function getMyRole(): Promise<AppRole | null> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    const { data, error } = await supabase
+    const adminClient = await createAdminClient()
+    const { data, error } = await adminClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -67,11 +68,11 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole | null> {
       return null
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .maybeSingle()) as any
 
     if (error) {
       console.log('[requireRole] Error fetching user_roles:', error.message)
@@ -99,7 +100,7 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole | null> {
 
 export async function getProjects() {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const { data: projects, error } = await supabase
       .from('projects')
       .select('*')
@@ -118,7 +119,7 @@ export async function getProjects() {
 }
 
 export async function getProject(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data: project, error } = await supabase
     .from('projects')
     .select('*')
@@ -130,7 +131,7 @@ export async function getProject(id: string) {
 }
 
 export async function getProjectFinancialSummary(id: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const { data, error } = await (supabase.rpc('get_project_financial_summary', { p_project_id: id } as any) as any)
   if (error) throw error
   return data?.[0] ?? null
@@ -187,7 +188,8 @@ export async function createProject(
     }
     console.log('[createProject] Insert data:', JSON.stringify(insertData, null, 2))
 
-    const { error } = await (supabase.from('projects') as any).insert(insertData)
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('projects') as any).insert(insertData)
 
     if (error) {
       console.error('[createProject] Supabase insert error:', error)
@@ -224,8 +226,8 @@ export async function updateProject(
 
     const project_type = formData.getAll('project_type') as string[]
 
-    const supabase = await createClient()
-    const { error } = await (((supabase as any).from('projects'))
+    const adminClient = await createAdminClient()
+    const { error } = await (((adminClient as any).from('projects'))
       .update({
         ...validated.data,
         project_type,
@@ -248,8 +250,8 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
     const role = await requireRole(['admin'])
     if (!role) return { error: 'Unauthorized - Admin access required' }
 
-    const supabase = await createClient()
-    const { error } = await (((supabase as any).from('projects'))
+    const adminClient = await createAdminClient()
+    const { error } = await (((adminClient as any).from('projects'))
       .update({ is_deleted: true } as any)
       .eq('id', id) as any)
 
