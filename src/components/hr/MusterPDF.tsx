@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 6, color: '#6b7280', marginTop: 1 },
 })
 
-function formatINR(n) {
+function formatINR(n: any) {
   return '₹' + Math.round(n).toLocaleString('en-IN')
 }
 

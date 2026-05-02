@@ -7,7 +7,7 @@ import {
   FileText,
   Plus,
   IndianRupee,
-  CheckCircle2,
+  CheckCircle,
   Clock,
   AlertTriangle,
   ArrowRight,
@@ -44,8 +44,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: FileText },
   submitted: { label: 'Submitted', color: 'bg-blue-100 text-blue-700', icon: Clock },
   under_measurement: { label: 'Under Measurement', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
-  certified: { label: 'Certified', color: 'bg-purple-100 text-purple-700', icon: CheckCircle2 },
-  payment_released: { label: 'Payment Released', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
+  certified: { label: 'Certified', color: 'bg-purple-100 text-purple-700', icon: CheckCircle },
+  payment_released: { label: 'Payment Released', color: 'bg-green-100 text-green-700', icon: CheckCircle },
   partially_paid: { label: 'Partially Paid', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle },
 }
 

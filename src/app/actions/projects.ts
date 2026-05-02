@@ -16,7 +16,7 @@ export async function getMyRole(): Promise<AppRole | null> {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .single() as any
 
     if (error || !data) return null
     if (!isAppRole(data.role)) return null
@@ -67,7 +67,7 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole | null> {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .single() as any
 
     if (error || !data) {
       console.log('[requireRole] Error fetching user_roles or no data:', error?.message)
@@ -98,10 +98,10 @@ export async function getProjects() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('getProjects error:', error.message, error.status)
+      console.error('getProjects error:', error.message, error.code)
       return []
     }
-    return projects ?? []
+    return (projects ?? []) as any
   } catch (err) {
     console.error('getProjects exception:', err)
     return []
@@ -117,12 +117,12 @@ export async function getProject(id: string) {
     .single()
 
   if (error) throw error
-  return project
+  return project as any
 }
 
 export async function getProjectFinancialSummary(id: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase.rpc('get_project_financial_summary', { p_project_id: id })
+  const { data, error } = await (supabase.rpc('get_project_financial_summary', { p_project_id: id } as any) as any)
   if (error) throw error
   return data?.[0] ?? null
 }
@@ -163,7 +163,7 @@ export async function createProject(
       ...validated.data,
       project_type,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) {
       console.error('[createProject] Supabase insert error:', error)
@@ -201,14 +201,13 @@ export async function updateProject(
     const project_type = formData.getAll('project_type') as string[]
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('projects')
+    const { error } = await (((supabase as any).from('projects'))
       .update({
         ...validated.data,
         project_type,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
+      } as any)
+      .eq('id', id) as any)
 
     if (error) return { error: error.message }
 
@@ -226,10 +225,9 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
     if (!role) return { error: 'Unauthorized - Admin access required' }
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('projects')
-      .update({ is_deleted: true })
-      .eq('id', id)
+    const { error } = await (((supabase as any).from('projects'))
+      .update({ is_deleted: true } as any)
+      .eq('id', id) as any)
 
     if (error) return { error: error.message }
 
@@ -269,23 +267,23 @@ export async function convertTenderToProject(
         tender_id: tenderId,
         status: 'ongoing',
         created_by: user?.id,
-      })
+      } as any)
       .select('id')
       .single()
 
     if (insertError) return { error: insertError.message }
 
-    await supabase
-      .from('tenders')
+    await ((supabase
+      .from('tenders') as any)
       .update({
         status: 'awarded',
-        converted_project_id: project.id,
-      })
-      .eq('id', tenderId)
+        converted_project_id: (project as any).id,
+      } as any)
+      .eq('id', tenderId) as any)
 
     revalidatePath('/projects')
     revalidatePath('/tenders')
-    return { projectId: project.id }
+    return { projectId: (project as any).id }
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Something went wrong' }
   }

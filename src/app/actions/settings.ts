@@ -56,7 +56,7 @@ export async function updateOrgSettings(
     const { data: existing } = await supabase
       .from('org_settings')
       .select('id')
-      .single()
+      .single() as any
 
     if (existing) {
       const updateData = {
@@ -73,10 +73,10 @@ export async function updateOrgSettings(
         updated_at: new Date().toISOString()
       }
 
-      const { error } = await supabase
-        .from('org_settings')
-        .update(updateData)
-        .eq('id', existing.id)
+      const { error } = await (((supabase as any)
+        .from('org_settings'))
+        .update(updateData as any)
+        .eq('id', (existing as any).id) as any)
       if (error) return { error: error.message }
     } else {
       const insertData = {
@@ -94,7 +94,7 @@ export async function updateOrgSettings(
 
       const { error } = await supabase
         .from('org_settings')
-        .insert(insertData)
+        .insert(insertData as any)
       if (error) return { error: error.message }
     }
 
@@ -148,9 +148,9 @@ export async function inviteUser(
 
     // Set the desired role (trigger creates 'viewer' by default; we upgrade it)
     if (data.user && validated.data.role !== 'viewer') {
-      await adminClient
-        .from('user_roles')
-        .update({ role: validated.data.role })
+      await (adminClient
+        .from('user_roles') as any)
+        .update({ role: validated.data.role } as any)
         .eq('user_id', data.user.id)
     }
 
@@ -194,10 +194,9 @@ export async function updateUserRole(
       }
     }
 
-    const { error } = await supabase
-      .from('user_roles')
-      .update({ role: newRole, assigned_by: adminUser.user?.id })
-      .eq('user_id', userId)
+    const { error } = await (supabase.from('user_roles') as any)
+      .update({ role: newRole, assigned_by: adminUser.user?.id } as any)
+      .eq('user_id', userId) as any
 
     if (error) return { error: error.message }
 
@@ -235,9 +234,9 @@ export async function deactivateUser(
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single()
+        .single() as any
 
-      if (userRole?.role === 'admin') {
+      if ((userRole as any)?.role === 'admin') {
         const { count } = await supabase
           .from('user_roles')
           .select('*', { count: 'exact', head: true })
@@ -249,10 +248,9 @@ export async function deactivateUser(
     }
 
     // Update profile is_active flag
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ is_active: activate })
-      .eq('id', userId)
+    const { error: profileError } = await (supabase.from('profiles') as any)
+      .update({ is_active: activate } as any)
+      .eq('id', userId) as any
 
     if (profileError) return { error: profileError.message }
 

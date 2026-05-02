@@ -17,9 +17,9 @@ export async function getDashboardData() {
     supabase.from('projects').select('id, project_name, status, contract_value').eq('is_deleted', false).order('created_at', { ascending: false }).limit(10),
     supabase.from('ra_bills').select('*, ra_bill_payments(amount_received), project:projects(project_name)').eq('is_deleted', false).order('created_at', { ascending: false }).limit(10),
     supabase.from('expenses').select('*, project:projects(project_name)').eq('is_deleted', false).order('expense_date', { ascending: false }).limit(10),
-    supabase.rpc('get_monthly_cashflow', { months_back: 6 }),
+    supabase.rpc('get_monthly_cashflow', { months_back: 6 } as any),
     supabase.from('org_settings').select('*').limit(1).single(),
-  ])
+  ]) as any
 
   const { data: totalContractValue } = await supabase
     .from('projects')
@@ -27,7 +27,7 @@ export async function getDashboardData() {
     .eq('status', 'ongoing')
     .eq('is_deleted', false)
 
-  const contractValueSum = totalContractValue?.reduce((s, p) => s + (p.contract_value ?? 0), 0) ?? 0
+  const contractValueSum = (totalContractValue as any)?.reduce((s: number, p: any) => s + (p.contract_value ?? 0), 0) ?? 0
 
   const { count: equipmentCount } = await supabase
     .from('equipment')
@@ -42,22 +42,22 @@ export async function getDashboardData() {
     .order('entry_date', { ascending: false })
     .limit(15)
 
-  const billedThisMonth = recentBills
-    ?.filter(b => {
+  const billedThisMonth = (recentBills as any)
+    ?.filter((b: any) => {
       const billDate = new Date(b.bill_date)
       const now = new Date()
       return billDate.getMonth() === now.getMonth() && billDate.getFullYear() === now.getFullYear()
     })
-    ?.reduce((s, b) => s + (b.gross_amount ?? 0), 0) ?? 0
+    ?.reduce((s: number, b: any) => s + (b.gross_amount ?? 0), 0) ?? 0
 
-  const receivedThisMonth = recentBills
-    ?.flatMap(b => (b.ra_bill_payments ?? []))
+  const receivedThisMonth = (recentBills as any)
+    ?.flatMap((b: any) => (b.ra_bill_payments ?? []))
     ?.filter((p: { payment_date: string }) => {
       const payDate = new Date(p.payment_date)
       const now = new Date()
       return payDate.getMonth() === now.getMonth() && payDate.getFullYear() === now.getFullYear()
     })
-    ?.reduce((s, p: { amount_received: number }) => s + (p.amount_received ?? 0), 0) ?? 0
+    ?.reduce((s: number, p: { amount_received: number }) => s + (p.amount_received ?? 0), 0) ?? 0
 
   const { data: pendingRetention } = await supabase
     .from('ra_bill_deductions')
@@ -65,7 +65,7 @@ export async function getDashboardData() {
     .eq('deduction_type', 'retention')
     .eq('is_deleted', false)
 
-  const pendingRetentionSum = pendingRetention?.reduce((s, d) => s + (d.amount ?? 0), 0) ?? 0
+  const pendingRetentionSum = (pendingRetention as any)?.reduce((s: number, d: any) => s + (d.amount ?? 0), 0) ?? 0
 
   const { data: projectStatusCounts } = await supabase
     .from('projects')
@@ -73,7 +73,7 @@ export async function getDashboardData() {
     .eq('is_deleted', false)
 
   const statusCounts: Record<string, number> = {}
-  for (const p of (projectStatusCounts ?? [])) {
+  for (const p of ((projectStatusCounts ?? []) as any)) {
     statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1
   }
 
@@ -83,7 +83,7 @@ export async function getDashboardData() {
     .eq('is_deleted', false)
 
   const expenseByCategory: Record<string, number> = {}
-  for (const e of (topExpenseCategories ?? [])) {
+  for (const e of ((topExpenseCategories ?? []) as any)) {
     expenseByCategory[e.category] = (expenseByCategory[e.category] ?? 0) + (e.amount ?? 0)
   }
 
@@ -101,8 +101,8 @@ export async function getDashboardData() {
     pendingRetention: pendingRetentionSum,
     statusCounts,
     topCategories,
-    cashflow: cashflow ?? [],
-    recentActivity: recentActivity ?? [],
-    projects: projects ?? [],
+    cashflow: (cashflow as any) ?? [],
+    recentActivity: (recentActivity as any) ?? [],
+    projects: (projects as any) ?? [],
   }
 }

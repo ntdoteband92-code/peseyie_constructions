@@ -48,7 +48,7 @@ export async function getDiaryEntries(projectId?: string, startDate?: string, en
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createDiaryEntry(_prevState: any, formData: FormData): Promise<any> {
@@ -63,7 +63,7 @@ export async function createDiaryEntry(_prevState: any, formData: FormData): Pro
     const { error } = await supabase.from('diary_entries').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/diary')
     return { success: true }
@@ -95,7 +95,7 @@ export async function getDocuments(projectId?: string, category?: string) {
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getExpiringDocuments(daysAhead: number = 60) {
@@ -127,7 +127,7 @@ export async function createDocument(_prevState: any, formData: FormData): Promi
     const { error } = await supabase.from('documents').insert({
       ...validated.data,
       uploaded_by: user?.id,
-    })
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/documents')
     return { success: true }

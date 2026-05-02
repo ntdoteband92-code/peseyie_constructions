@@ -11,7 +11,7 @@ import {
   IndianRupee,
   Edit,
   FileText,
-  CheckCircle2,
+  CheckCircle,
   Clock,
   XCircle,
   AlertTriangle,
@@ -31,8 +31,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   identified: { label: 'Identified', color: 'bg-gray-100 text-gray-700', icon: FileText },
   documents_purchased: { label: 'Documents Purchased', color: 'bg-blue-100 text-blue-700', icon: FileText },
   bid_submitted: { label: 'Bid Submitted', color: 'bg-amber-100 text-amber-700', icon: Clock },
-  l1_lowest_bidder: { label: 'L1 (Lowest Bidder)', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-  awarded: { label: 'Awarded', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
+  l1_lowest_bidder: { label: 'L1 (Lowest Bidder)', color: 'bg-green-100 text-green-700', icon: CheckCircle },
+  awarded: { label: 'Awarded', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
   lost: { label: 'Lost', color: 'bg-red-100 text-red-700', icon: XCircle },
   withdrawn: { label: 'Withdrawn', color: 'bg-gray-100 text-gray-500', icon: XCircle },
 }
@@ -175,7 +175,7 @@ export default async function TenderDetailPage({ params }: Props) {
       {tender.converted_project_id && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="flex items-center gap-3 py-4">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-green-600" />
             <span className="text-sm text-green-800">
               This tender has been converted to a project.{' '}
               <Link href={`/projects/${tender.converted_project_id}`} className="font-medium underline">View Project →</Link>

@@ -17,7 +17,7 @@ import {
   IndianRupee,
   TrendingUp,
   Clock,
-  CheckCircle2,
+  CheckCircle,
   AlertTriangle,
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; icon: React.ElementType }> = {
   ongoing: { bg: 'bg-blue-100', text: 'text-blue-800', icon: Clock },
-  completed: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle2 },
+  completed: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
   on_hold: { bg: 'bg-amber-100', text: 'text-amber-800', icon: AlertTriangle },
   defect_liability: { bg: 'bg-purple-100', text: 'text-purple-800', icon: Clock },
   terminated: { bg: 'bg-red-100', text: 'text-red-800', icon: AlertTriangle },
@@ -245,7 +245,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex flex-wrap gap-2">
-                  {projectTypes.map((type) => (
+                  {projectTypes.map((type: any) => (
                     <span
                       key={type}
                       className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium"

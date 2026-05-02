@@ -18,12 +18,14 @@ declare module 'lucide-react' {
 declare module 'lucide-react' {
   export const AlertCircle: any
   export const ArrowRight: any
+  export const ArrowLeft: any
   export const BarChart3: any
   export const Bell: any
   export const BookOpen: any
   export const Box: any
   export const Briefcase: any
   export const Calculator: any
+  export const Calendar: any
   export const CheckCircle: any
   export const ChevronDown: any
   export const ChevronLeft: any
@@ -37,6 +39,7 @@ declare module 'lucide-react' {
   export const File: any
   export const FileDown: any
   export const FileUp: any
+  export const FileText: any
   export const Filter: any
   export const Flame: any
   export const Folder: any
@@ -48,14 +51,18 @@ declare module 'lucide-react' {
   export const Info: any
   export const Key: any
   export const Layout: any
+  export const LayoutDashboard: any
   export const Link: any
+  export const Loader2: any
   export const LogOut: any
+  export const MapPin: any
   export const Menu: any
   export const MessageCircle: any
   export const Minus: any
   export const MoreHorizontal: any
   export const MoreVertical: any
   export const Package: any
+  export const Phone: any
   export const PieChart: any
   export const Plus: any
   export const Power: any
@@ -71,4 +78,33 @@ declare module 'lucide-react' {
   export const User: any
   export const Users: any
   export const X: any
+  export const XCircle: any
+  export const HardHat: any
+  export const Building2: any
+  export const IndianRupee: any
+  export const AlertTriangle: any
+  export const Zap: any
+  export const Activity: any
+  export const Cloud: any
+  export const Sun: any
+  export const CloudRain: any
+  export const Wrench: any
+  export const Download: any
+  export const TrendingDown: any
+  export const ArrowUpCircle: any
+  export const ArrowDownCircle: any
+  export const UserPlus: any
+  export const Save: any
+  export const CircleCheck: any
+  export const Banknote: any
+  export const Handshake: any
+  export const ShieldAlert: any
+  export const Eye: any
+  export const Receipt: any
+  export const Mail: any
+  export const Percent: any
+  export const UserX: any
+  export const UserCheck: any
+  export const Check: any
+  export const ChevronUp: any
 }

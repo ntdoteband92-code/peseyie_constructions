@@ -31,10 +31,10 @@ export async function POST(request: Request) {
       profit_pct: profit_pct ?? 0,
       grand_total: grand_total ?? 0,
       created_by: user.id,
-    }).select('id').single()
+    } as any).select('id').single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-    return NextResponse.json({ id: data.id })
+    return NextResponse.json({ id: (data as any).id })
   } catch (error) {
     console.error('Estimation API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

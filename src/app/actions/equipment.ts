@@ -67,7 +67,7 @@ export async function getEquipment() {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getVehicles() {
@@ -79,7 +79,7 @@ export async function getVehicles() {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getProjectsForSelection() {
@@ -91,7 +91,7 @@ export async function getProjectsForSelection() {
     .order('project_name')
 
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createEquipment(_prevState: EquipmentFormState, formData: FormData): Promise<EquipmentFormState> {
@@ -110,7 +110,7 @@ export async function createEquipment(_prevState: EquipmentFormState, formData: 
     const { error } = await supabase.from('equipment').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
     revalidatePath('/equipment')
@@ -136,7 +136,7 @@ export async function createVehicle(_prevState: EquipmentFormState, formData: Fo
     const { error } = await supabase.from('vehicles').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
     revalidatePath('/equipment')
@@ -153,10 +153,7 @@ export async function updateEquipmentStatus(
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('equipment')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', id)
+    const { error } = await (supabase.from('equipment') as any).update({ status, updated_at: new Date().toISOString() }).eq('id', id)
 
     if (error) return { error: error.message }
     revalidatePath('/equipment')
@@ -170,7 +167,7 @@ export async function deleteEquipment(id: string): Promise<{ error?: string }> {
   try {
     await requireRole(['admin', 'manager'])
     const supabase = await createClient()
-    const { error } = await supabase.from('equipment').update({ is_deleted: true }).eq('id', id)
+    const { error } = await (supabase.from('equipment') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/equipment')
     return {}

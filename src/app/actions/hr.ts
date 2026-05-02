@@ -47,14 +47,14 @@ export async function getEmployees() {
     .eq('is_deleted', false)
     .order('full_name')
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getEmployee(id: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('employees').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('employees').select('*').eq('id', id).single() as any
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function createEmployee(_prevState: any, formData: FormData): Promise<any> {
@@ -66,7 +66,7 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('employees').insert({ ...validated.data, created_by: user?.id })
+    const { error } = await supabase.from('employees').insert({ ...validated.data, created_by: user?.id } as any)
     if (error) return { error: error.message }
     revalidatePath('/hr')
     return { success: true }
@@ -117,7 +117,7 @@ export async function markAttendance(entries: {
       created_by: user?.id,
     }))
 
-    const { error } = await supabase.from('attendance').upsert(records, {
+    const { error } = await supabase.from('attendance').upsert(records as any, {
       onConflict: 'project_id,entry_date,employee_id',
     })
     if (error) return { error: error.message }
@@ -162,7 +162,7 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
     const { error } = await supabase.from('advance_records').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/hr')
     return { success: true }

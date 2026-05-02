@@ -10,7 +10,7 @@ import {
   Clock,
   Activity,
   AlertTriangle,
-  CheckCircle2,
+  CheckCircle,
   ArrowRight,
   FileText,
 } from 'lucide-react'
@@ -177,7 +177,7 @@ export default function DashboardClient({ data }: { data: DashboardData | null }
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} tickFormatter={formatINRCompact} />
-                    <Tooltip formatter={(value: number) => formatINR(value)} />
+                    <Tooltip formatter={(value: any) => formatINR(value)} />
                     <Bar dataKey="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
                   </BarChart>

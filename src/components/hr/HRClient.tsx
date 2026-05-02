@@ -182,7 +182,7 @@ export default function HRClient({
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                           <span className="text-amber-700 font-semibold text-sm">
-                            {emp.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            {emp.full_name?.split(' ').map((n: any) => n[0]).join('').slice(0, 2)}
                           </span>
                         </div>
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status?.bg} ${status?.text}`}>

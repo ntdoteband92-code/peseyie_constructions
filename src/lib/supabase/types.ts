@@ -1056,60 +1056,6 @@ export interface Database {
           created_by?: string | null
         }
       }
-      diary_entries: {
-        Row: {
-          id: string
-          project_id: string
-          entry_date: string
-          weather_am: WeatherCondition | null
-          weather_pm: WeatherCondition | null
-          work_done: string | null
-          workers_count: number | null
-          equipment_on_site: string | null
-          visitors: string | null
-          materials_received: string | null
-          issues: string | null
-          written_by: string | null
-          verified_by: string | null
-          is_deleted: boolean
-          created_at: string
-          updated_at: string
-          created_by: string | null
-        }
-        Insert: {
-          project_id: string
-          entry_date: string
-          weather_am?: WeatherCondition | null
-          weather_pm?: WeatherCondition | null
-          work_done?: string | null
-          workers_count?: number | null
-          equipment_on_site?: string | null
-          visitors?: string | null
-          materials_received?: string | null
-          issues?: string | null
-          written_by?: string | null
-          verified_by?: string | null
-          is_deleted?: boolean
-          created_by?: string | null
-        }
-        Update: {
-          project_id?: string
-          entry_date?: string
-          weather_am?: WeatherCondition | null
-          weather_pm?: WeatherCondition | null
-          work_done?: string | null
-          workers_count?: number | null
-          equipment_on_site?: string | null
-          visitors?: string | null
-          materials_received?: string | null
-          issues?: string | null
-          written_by?: string | null
-          verified_by?: string | null
-          is_deleted?: boolean
-          updated_at?: string
-          created_by?: string | null
-        }
-      }
     }
     Views: Record<string, never>
     Functions: {

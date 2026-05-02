@@ -26,6 +26,12 @@ import type { DiaryEntry, Document } from '@/app/actions/diary'
 
 const WEATHER_OPTIONS = ['Clear', 'Cloudy', 'Rain', 'Heavy Rain', 'Fog']
 
+const DOCUMENT_CATEGORIES = [
+  'contract', 'drawing', 'boq', 'tender_document', 'blasting_license',
+  'explosive_license', 'equipment_rc', 'insurance', 'fitness_certificate',
+  'labour_license', 'govt_correspondence', 'ra_bill_copy', 'photo_report', 'other',
+]
+
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 const now = new Date()
 const thirtyDaysFromNow = new Date(now.getTime() + THIRTY_DAYS_MS)

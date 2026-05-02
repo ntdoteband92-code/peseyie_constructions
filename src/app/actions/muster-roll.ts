@@ -73,7 +73,7 @@ export async function getMusterRollData(projectId: string, month: string) {
       else if (days[dateStr] === false) absent++
     }
     const wages = present * (w.daily_wage ?? 0) + half * ((w.daily_wage ?? 0) / 2)
-    constOT = 0
+    const OT = 0
     const wagesOT = wages
     return {
       id: w.id,
@@ -109,7 +109,7 @@ export async function saveAttendance(projectId: string, records: { workerId: str
     created_by: user.id,
   }))
 
-  const { error } = await supabase.from('attendance').upsert(toInsert, { onConflict: 'project_id,worker_id,date' })
+  const { error } = await supabase.from('attendance').upsert(toInsert as any, { onConflict: 'project_id,worker_id,date' })
   if (error) throw error
   revalidatePath('/hr')
 }
@@ -117,7 +117,7 @@ export async function saveAttendance(projectId: string, records: { workerId: str
 export async function getMusterExportData(projectId: string, month: string) {
   const supabase = await createClient()
 
-  const projectResult = await supabase.from('projects').select('project_name').eq('id', projectId).single()
+  const projectResult = await supabase.from('projects').select('project_name').eq('id', projectId).single() as any
   const projectName = projectResult.data?.project_name ?? 'Unknown Project'
 
   const [workersResult, attendanceResult, diariesResult] = await Promise.all([

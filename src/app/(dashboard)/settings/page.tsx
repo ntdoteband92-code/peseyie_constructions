@@ -37,7 +37,7 @@ export default async function SettingsPage() {
       .from('org_settings')
       .select('*')
       .single()
-    orgSettings = data
+    orgSettings = data as any
   } catch (e) {
     console.error('Error getting org settings:', e)
   }

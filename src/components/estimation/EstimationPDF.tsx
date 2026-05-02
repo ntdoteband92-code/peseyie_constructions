@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 6, color: '#9ca3af' },
 })
 
-function formatINR(n) {
+function formatINR(n: any) {
   return '₹' + Math.round(n).toLocaleString('en-IN')
 }
 

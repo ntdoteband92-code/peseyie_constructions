@@ -94,14 +94,14 @@ export default function ReportsClient({ data }: { data: ReportSummary }) {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Projects" value={String(data.stats.total_projects)} sub={`${data.stats.active_projects} active`} />
-        <StatCard label="Total Project Value" value={formatINR(data.stats.total_project_value)} />
+        <StatCard label="Total Project Value" value={formatINR(data.stats.totalProjectValue)} />
         <StatCard label="RA Bills Raised" value={formatINR(data.stats.total_ra_bills)} sub={`${data.stats.total_ra_bill_count} bills`} />
         <StatCard label="Total Expenses" value={formatINR(data.stats.total_expenses)} />
         <StatCard label="Active Workers" value={String(data.stats.active_workers)} sub={`${data.stats.total_workers} total registered`} />
         <StatCard
           label="Bill Collection"
-          value={data.stats.total_project_value > 0
-            ? Math.round((data.stats.total_ra_bills / data.stats.total_project_value) * 100) + '%'
+          value={data.stats.totalProjectValue > 0
+            ? Math.round((data.stats.total_ra_bills / data.stats.totalProjectValue) * 100) + '%'
             : '0%'}
           sub="of total project value"
         />
@@ -165,11 +165,11 @@ export default function ReportsClient({ data }: { data: ReportSummary }) {
                     <tr className="bg-gray-50 font-semibold">
                       <td className="p-3">Total ({data.projectSummary.length})</td>
                       <td />
-                      <td className="p-3 text-right">{formatINR(data.stats.total_project_value)}</td>
+                      <td className="p-3 text-right">{formatINR(data.stats.totalProjectValue)}</td>
                       <td className="p-3 text-right">{formatINR(data.stats.total_ra_bills)}</td>
                       <td className="p-3 text-right">
-                        {data.stats.total_project_value > 0
-                          ? Math.round((data.stats.total_ra_bills / data.stats.total_project_value) * 100) + '%'
+                        {data.stats.totalProjectValue > 0
+                          ? Math.round((data.stats.total_ra_bills / data.stats.totalProjectValue) * 100) + '%'
                           : '0%'}
                       </td>
                       <td className="p-3 text-right text-red-600">{formatINR(data.stats.total_expenses)}</td>

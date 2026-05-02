@@ -18,7 +18,7 @@ export async function DELETE(request: Request) {
       const result = await deleteSubcontractor(id)
       if (result?.error) return NextResponse.json({ error: result.error }, { status: 400 })
     } else {
-      const { error } = await supabase.from('work_orders').update({ is_deleted: true }).eq('id', id)
+      const { error } = await (supabase.from('work_orders') as any).update({ is_deleted: true } as any).eq('id', id) as any
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
     }
 

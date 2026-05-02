@@ -97,7 +97,7 @@ export async function getReportSummary() {
     stats: {
       total_projects: projects.length,
       active_projects: projects.filter((p: any) => p.project_status === 'in_progress').length,
-      total_project_value,
+      totalProjectValue,
       total_ra_bills: totalRAbills,
       total_expenses: totalExpenses,
       active_workers: activeWorkers,

@@ -34,8 +34,8 @@ export async function getMyProfile(): Promise<MyProfileResult | null> {
     if (!user) return null
 
     const [profileResult, roleResult] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('user_roles').select('role').eq('user_id', user.id).single(),
+      supabase.from('profiles').select('*').eq('id', user.id).single() as any,
+      supabase.from('user_roles').select('role').eq('user_id', user.id).single() as any,
     ])
 
     return {

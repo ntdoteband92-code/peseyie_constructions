@@ -180,7 +180,7 @@ function ProjectCard({
           </div>
 
           <div className="flex flex-wrap gap-1 pt-2">
-            {projectTypes.map((type) => (
+            {projectTypes.map((type: any) => (
               <span
                 key={type}
                 className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-700"

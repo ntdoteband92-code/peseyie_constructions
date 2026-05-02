@@ -31,7 +31,7 @@ export async function getMaterials() {
   const supabase = await createClient()
   const { data, error } = await supabase.from('materials').select('*').eq('is_deleted', false).order('material_name')
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createMaterial(_prevState: any, formData: FormData): Promise<any> {
@@ -43,7 +43,7 @@ export async function createMaterial(_prevState: any, formData: FormData): Promi
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('materials').insert({ ...validated.data, created_by: user?.id })
+    const { error } = await supabase.from('materials').insert({ ...validated.data, created_by: user?.id } as any)
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }
@@ -76,7 +76,7 @@ export async function getMaterialInward(projectId?: string) {
   if (projectId) query = query.eq('project_id', projectId)
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createMaterialInward(_prevState: any, formData: FormData): Promise<any> {
@@ -90,9 +90,9 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('material_inward').insert({
       ...validated.data,
-      inward_date: validated.data.inward_date || new Date().toISOString().split('T')[0],
+      inward_date: (validated.data as any).inward_date || new Date().toISOString().split('T')[0],
       created_by: user?.id,
-    })
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }
@@ -128,7 +128,7 @@ export async function getExplosivesLog() {
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as any
 }
 
 export async function createExplosiveEntry(_prevState: any, formData: FormData): Promise<any> {
@@ -143,7 +143,7 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
     const { error } = await supabase.from('explosives_register').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }

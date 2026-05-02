@@ -48,14 +48,14 @@ export async function getExpenses(projectId?: string) {
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getExpense(id: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('expenses').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('expenses').select('*').eq('id', id).single() as any
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function createExpense(_prevState: ExpenseFormState, formData: FormData): Promise<ExpenseFormState> {
@@ -71,10 +71,10 @@ export async function createExpense(_prevState: ExpenseFormState, formData: Form
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('expenses').insert({
+    const { error } = await (supabase.from('expenses') as any).insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
     revalidatePath('/financials')
@@ -96,8 +96,7 @@ export async function updateExpense(id: string, _prevState: ExpenseFormState, fo
     }
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('expenses')
+    const { error } = await (supabase.from('expenses') as any)
       .update({ ...validated.data, updated_at: new Date().toISOString() })
       .eq('id', id)
 
@@ -114,7 +113,7 @@ export async function deleteExpense(id: string): Promise<{ error?: string }> {
   try {
     await requireRole(['admin', 'manager'])
     const supabase = await createClient()
-    const { error } = await supabase.from('expenses').update({ is_deleted: true }).eq('id', id)
+    const { error } = await (supabase.from('expenses') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/financials')
     revalidatePath('/projects')
@@ -128,7 +127,7 @@ export async function getExpenseSummary() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('expenses')
-    .select('category, amount, expense_date')
+    .select('category, amount, expense_date') as any
 
   if (error) throw error
 
@@ -191,7 +190,7 @@ export async function createIncomeEntry(_prevState: ExpenseFormState, formData: 
     const { error } = await supabase.from('income_entries').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
     revalidatePath('/financials')

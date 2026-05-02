@@ -19,7 +19,7 @@ export default async function FinancialsPage() {
     getProjects().catch(() => []),
   ])
 
-  const projects = projectsData.map(p => ({ id: p.id, project_name: p.project_name }))
+  const projects = projectsData.map((p: any) => ({ id: p.id, project_name: p.project_name }))
 
   return (
     <FinancialsClient

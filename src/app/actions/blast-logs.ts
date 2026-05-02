@@ -65,7 +65,7 @@ export async function getBlastLogs(projectId?: string) {
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createBlastLog(_prevState: any, formData: FormData): Promise<any> {
@@ -76,7 +76,7 @@ export async function createBlastLog(_prevState: any, formData: FormData): Promi
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const supabase = await createClient()
-    const { error } = await supabase.from('blast_logs').insert(validated.data)
+    const { error } = await supabase.from('blast_logs').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }
@@ -89,10 +89,7 @@ export async function deleteBlastLog(id: string): Promise<any> {
   try {
     await requireRole(['admin', 'manager'])
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('blast_logs')
-      .update({ is_deleted: true })
-      .eq('id', id)
+    const { error } = await (supabase.from('blast_logs') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }

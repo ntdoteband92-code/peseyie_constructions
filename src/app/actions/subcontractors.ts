@@ -47,7 +47,7 @@ export async function getSubcontractors(search?: string) {
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function getSubcontractorById(id: string) {
@@ -56,9 +56,9 @@ export async function getSubcontractorById(id: string) {
     .from('subcontractors')
     .select('*')
     .eq('id', id)
-    .single()
+    .single() as any
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function createSubcontractor(_prevState: any, formData: FormData): Promise<any> {
@@ -69,7 +69,7 @@ export async function createSubcontractor(_prevState: any, formData: FormData): 
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const supabase = await createClient()
-    const { error } = await supabase.from('subcontractors').insert(validated.data)
+    const { error } = await supabase.from('subcontractors').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -86,10 +86,9 @@ export async function updateSubcontractor(id: string, _prevState: any, formData:
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('subcontractors')
-      .update(validated.data)
-      .eq('id', id)
+    const { error } = await (supabase.from('subcontractors') as any)
+      .update(validated.data as any)
+      .eq('id', id) as any
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -102,10 +101,9 @@ export async function deleteSubcontractor(id: string): Promise<any> {
   try {
     await requireRole(['admin'])
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('subcontractors')
-      .update({ is_deleted: true })
-      .eq('id', id)
+    const { error } = await (supabase.from('subcontractors') as any)
+      .update({ is_deleted: true } as any)
+      .eq('id', id) as any
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -139,7 +137,7 @@ export async function getWorkOrders(subcontractorId?: string) {
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as any
 }
 
 export async function createWorkOrder(_prevState: any, formData: FormData): Promise<any> {
@@ -150,7 +148,7 @@ export async function createWorkOrder(_prevState: any, formData: FormData): Prom
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const supabase = await createClient()
-    const { error } = await supabase.from('work_orders').insert(validated.data)
+    const { error } = await supabase.from('work_orders').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }
@@ -167,10 +165,9 @@ export async function updateWorkOrder(id: string, _prevState: any, formData: For
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('work_orders')
-      .update(validated.data)
-      .eq('id', id)
+    const { error } = await (supabase.from('work_orders') as any)
+      .update(validated.data as any)
+      .eq('id', id) as any
     if (error) return { error: error.message }
     revalidatePath('/subcontractors')
     return { success: true }

@@ -46,7 +46,7 @@ export async function getRaBills(projectId: string) {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return bills
+  return (bills ?? []) as any
 }
 
 export async function getRaBill(id: string) {
@@ -59,10 +59,10 @@ export async function getRaBill(id: string) {
       ra_bill_payments(*)
     `)
     .eq('id', id)
-    .single()
+    .single() as any
 
   if (error) throw error
-  return bill
+  return bill as any
 }
 
 export async function getNextBillNumber(projectId: string): Promise<string> {
@@ -123,7 +123,7 @@ export async function createRaBill(
         project_id: projectId,
         net_payable: netPayable,
         created_by: user?.id,
-      })
+      } as any)
       .select('id')
       .single()
 
@@ -131,7 +131,7 @@ export async function createRaBill(
 
     if (deductions.length > 0) {
       const deductionRecords = deductions.map((d) => ({
-        ra_bill_id: bill.id,
+        ra_bill_id: (bill as any).id,
         deduction_type: d.deduction_type,
         amount: d.amount,
         percentage: d.percentage,
@@ -139,7 +139,7 @@ export async function createRaBill(
 
       const { error: dedError } = await supabase
         .from('ra_bill_deductions')
-        .insert(deductionRecords)
+        .insert(deductionRecords as any)
 
       if (dedError) return { error: dedError.message }
     }
@@ -160,10 +160,10 @@ export async function updateRaBillStatus(
     await requireRole(['admin', 'manager', 'accountant'])
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('ra_bills')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', billId)
+    const { error } = await (((supabase as any)
+      .from('ra_bills'))
+      .update({ status, updated_at: new Date().toISOString() } as any)
+      .eq('id', billId) as any)
 
     if (error) return { error: error.message }
 
@@ -197,7 +197,7 @@ export async function addRaBillPayment(
       payment_date: data.payment_date,
       reference_no: data.reference_no,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
 
@@ -205,7 +205,7 @@ export async function addRaBillPayment(
       .from('ra_bills')
       .select('id, ra_bill_payments(amount_received)')
       .eq('id', billId)
-      .single()
+      .single() as any
 
     if (bill?.ra_bill_payments) {
       const totalReceived = (bill.ra_bill_payments as { amount_received: number }[])
@@ -215,15 +215,15 @@ export async function addRaBillPayment(
         .from('ra_bills')
         .select('net_payable')
         .eq('id', billId)
-        .single()
+        .single() as any
 
       const netPayable = billFull?.net_payable ?? 0
       const newStatus = totalReceived >= netPayable ? 'payment_released' : 'partially_paid'
 
-      await supabase
-        .from('ra_bills')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', billId)
+      await ((supabase as any)
+        .from('ra_bills'))
+        .update({ status: newStatus, updated_at: new Date().toISOString() } as any)
+        .eq('id', billId) as any
     }
 
     revalidatePath(`/projects/${projectId}/bills`)
@@ -241,10 +241,10 @@ export async function deleteRaBill(
     await requireRole(['admin', 'manager'])
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('ra_bills')
-      .update({ is_deleted: true })
-      .eq('id', billId)
+    const { error } = await ((supabase as any)
+      .from('ra_bills'))
+      .update({ is_deleted: true } as any)
+      .eq('id', billId) as any
 
     if (error) return { error: error.message }
 

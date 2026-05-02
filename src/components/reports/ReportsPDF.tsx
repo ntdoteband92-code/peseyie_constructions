@@ -24,16 +24,16 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 7, color: '#9ca3af' },
 })
 
-function formatINR(n) {
+function formatINR(n: any) {
   return '₹' + Math.round(n).toLocaleString('en-IN')
 }
 
-function formatDate(d) {
+function formatDate(d: any) {
   if (!d) return '—'
   try { return format(new Date(d), 'dd/MM/yy') } catch { return '—' }
 }
 
-function ProgressBar({ value, max, color = '#f59e0b' }) {
+function ProgressBar({ value, max, color = '#f59e0b' }: { value: any, max: any, color?: any }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
   return (
     <View style={styles.progressBar}>
@@ -42,7 +42,7 @@ function ProgressBar({ value, max, color = '#f59e0b' }) {
   )
 }
 
-export default function ReportsPDF({ data }) {
+export default function ReportsPDF({ data }: { data: any }) {
   const { stats, projectSummary, expenseByCategory, raBillStatusSummary } = data
 
   return (
@@ -80,7 +80,7 @@ export default function ReportsPDF({ data }) {
             <Text style={styles.cellRight}>Billed %</Text>
             <Text style={styles.cellRight}>Expenses</Text>
           </View>
-          {projectSummary.map((p, i) => (
+          {projectSummary.map((p: any, i: any) => (
             <View key={i} style={styles.row}>
               <Text style={[styles.cell, { flex: 2 }]}>{p.name}</Text>
               <Text style={styles.cell}>{p.status?.replace('_', ' ') ?? '—'}</Text>
@@ -135,7 +135,7 @@ export default function ReportsPDF({ data }) {
             <Text style={[styles.cellRight]}>% Share</Text>
             <Text style={[styles.cell, { flex: 2 }]}>Visual</Text>
           </View>
-          {expenseByCategory.map((row, i) => {
+          {expenseByCategory.map((row: any, i: any) => {
             const pct = (row.amount / stats.total_expenses) * 100
             return (
               <View key={i} style={styles.row}>

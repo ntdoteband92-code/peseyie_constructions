@@ -15,7 +15,7 @@ export async function DELETE(
     const type = new URL(request.url).searchParams.get('type')
 
     if (type === 'vehicle') {
-      const { error } = await supabase.from('vehicles').update({ is_deleted: true }).eq('id', id)
+      const { error } = await (supabase.from('vehicles') as any).update({ is_deleted: true } as any).eq('id', id) as any
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
     } else {
       const result = await deleteEquipment(id)

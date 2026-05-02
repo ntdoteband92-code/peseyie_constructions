@@ -15,7 +15,7 @@ import {
   MoreHorizontal,
   Edit,
   Eye,
-  CheckCircle2,
+  CheckCircle,
   Clock,
   XCircle,
   AlertTriangle,
@@ -43,8 +43,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   identified: { label: 'Identified', color: 'bg-gray-100 text-gray-700', icon: FileText },
   documents_purchased: { label: 'Documents Purchased', color: 'bg-blue-100 text-blue-700', icon: FileText },
   bid_submitted: { label: 'Bid Submitted', color: 'bg-amber-100 text-amber-700', icon: Clock },
-  l1_lowest_bidder: { label: 'L1 (Lowest Bidder)', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-  awarded: { label: 'Awarded', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
+  l1_lowest_bidder: { label: 'L1 (Lowest Bidder)', color: 'bg-green-100 text-green-700', icon: CheckCircle },
+  awarded: { label: 'Awarded', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
   lost: { label: 'Lost', color: 'bg-red-100 text-red-700', icon: XCircle },
   withdrawn: { label: 'Withdrawn', color: 'bg-gray-100 text-gray-500', icon: XCircle },
 }
@@ -240,7 +240,7 @@ export default function TendersListClient({
                   {tender.converted_project_id && (
                     <div className="mt-2 flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">
-                        <CheckCircle2 className="h-3 w-3" />
+                        <CheckCircle className="h-3 w-3" />
                         Converted to Project
                       </span>
                     </div>

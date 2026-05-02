@@ -55,7 +55,7 @@ export async function getTenders() {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function getTender(id: string) {
@@ -67,7 +67,7 @@ export async function getTender(id: string) {
     .single()
 
   if (error) throw error
-  return data
+  return data as any
 }
 
 export async function createTender(
@@ -95,7 +95,7 @@ export async function createTender(
     const { error } = await supabase.from('tenders').insert({
       ...validated.data,
       created_by: user?.id,
-    })
+    } as any)
 
     if (error) return { error: error.message }
 
@@ -127,14 +127,13 @@ export async function updateTender(
     const status = formData.get('status') as string
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('tenders')
+    const { error } = await (supabase.from('tenders') as any)
       .update({
         ...validated.data,
         status,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
+      } as any)
+      .eq('id', id) as any
 
     if (error) return { error: error.message }
 
@@ -184,19 +183,18 @@ export async function convertTenderToProject(
 
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .insert(projectData)
+      .insert(projectData as any)
       .select('id')
       .single()
 
     if (projectError) return { error: projectError.message }
 
-    await supabase
-      .from('tenders')
+    await (supabase.from('tenders') as any)
       .update({
         status: 'awarded',
-        converted_project_id: project.id,
-      })
-      .eq('id', tenderId)
+        converted_project_id: (project as any).id,
+      } as any)
+      .eq('id', tenderId) as any
 
     revalidatePath('/tenders')
     revalidatePath('/projects')
@@ -214,10 +212,9 @@ export async function updateTenderStatus(
     await requireRole(['admin', 'manager', 'accountant'])
 
     const supabase = await createClient()
-    const { error } = await supabase
-      .from('tenders')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', id)
+    const { error } = await (supabase.from('tenders') as any)
+      .update({ status, updated_at: new Date().toISOString() } as any)
+      .eq('id', id) as any
 
     if (error) return { error: error.message }
 
