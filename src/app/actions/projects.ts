@@ -186,10 +186,15 @@ export async function createProject(
       project_type,
       created_by: user.id,
     }
-    console.log('[createProject] Insert data:', JSON.stringify(insertData, null, 2))
+  const completeInsertData = {
+    ...insertData,
+    is_deleted: false,
+    project_status: insertData.status ?? 'ongoing', // Ensure status is set
+  }
+  console.log('[createProject] Insert data:', JSON.stringify(completeInsertData, null, 2))
 
-    const adminClient = await createAdminClient()
-    const { error } = await (adminClient.from('projects') as any).insert(insertData)
+  const adminClient = await createAdminClient()
+  const { error } = await (adminClient.from('projects') as any).insert(completeInsertData)
 
     if (error) {
       console.error('[createProject] Supabase insert error:', error)
@@ -227,13 +232,13 @@ export async function updateProject(
     const project_type = formData.getAll('project_type') as string[]
 
     const adminClient = await createAdminClient()
-    const { error } = await (((adminClient as any).from('projects'))
-      .update({
-        ...validated.data,
-        project_type,
-        updated_at: new Date().toISOString(),
-      } as any)
-      .eq('id', id) as any)
+  const { error } = await (((adminClient as any).from('projects'))
+    .update({
+      ...validated.data,
+      project_type,
+      updated_at: new Date().toISOString(),
+    } as any)
+    .eq('id', id) as any)
 
     if (error) return { error: error.message }
 

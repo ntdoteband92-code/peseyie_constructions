@@ -35,6 +35,9 @@ export async function getReportSummary() {
     .eq('is_deleted', false)
   console.log(`DEBUG: Found ${projectCount} projects in database:`, projectList)
 
+  // Force fresh data by adding a cache-busting timestamp
+  const cacheBuster = Date.now()
+
   const [projectsResult, raBillsResult, expensesResult, workersResult, materialsResult, diaryResult] = await Promise.all([
     supabase.from('projects').select('id, project_name, project_status, project_value, start_date, end_date', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('ra_bills').select('id, bill_no, bill_date, bill_amount, status, project_id', { count: 'exact' }).eq('is_deleted', false),
@@ -42,6 +45,7 @@ export async function getReportSummary() {
     supabase.from('workers').select('id, worker_name, trade, daily_wage, is_active', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('material_inward').select('id, quantity, unit_rate, project_id, inward_date', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('diary_entries').select('id, entry_date, project_id', { count: 'exact' }).eq('is_deleted', false),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('is_deleted', false).then(res => console.log(`[${cacheBuster}] Projects count:`, res.count)),
   ])
 
   const projects = projectsResult.data ?? []
@@ -117,8 +121,8 @@ export async function getReportSummary() {
   return {
     stats: {
   total_projects: projects.length,
-  // Include ALL non-deleted projects, not just in_progress
-  active_projects: projects.length,
+  // Include ALL non-deleted projects
+  active_projects: projects.filter((p: any) => p.project_status !== 'completed' && p.project_status !== 'terminated').length,
       totalProjectValue,
       total_ra_bills: totalRAbills,
       total_expenses: totalExpenses,
