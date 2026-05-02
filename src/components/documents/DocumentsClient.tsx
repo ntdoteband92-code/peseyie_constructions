@@ -19,6 +19,7 @@ import {
   Cloud,
   X,
   ArrowUpCircle,
+  Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -490,7 +491,25 @@ export default function DocumentsClient({
       <Dialog open={showUpload} onOpenChange={setShowUpload}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Upload Document</DialogTitle></DialogHeader>
-          <form action={handleUpload as any} className="space-y-4">
+          <form action={async (formData: FormData) => {
+            const file = formData.get('file') as File
+            if (!file || file.size === 0) {
+              toast.error('Please select a file to upload')
+              return
+            }
+            try {
+              const res = await fetch('/api/documents', {
+                method: 'POST',
+                body: formData
+              })
+              if (!res.ok) throw new Error('Failed')
+              toast.success('Document uploaded successfully')
+              setShowUpload(false)
+              router.refresh()
+            } catch {
+              toast.error('Failed to upload document')
+            }
+          }} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Project</label>
               <select name="project_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
@@ -510,9 +529,27 @@ export default function DocumentsClient({
               <input name="file_name" required placeholder="e.g., Blasting License PC001" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="text-sm font-medium">File URL *</label>
-              <input name="storage_url" required placeholder="https://..." className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-              <p className="mt-1 text-xs text-gray-500">Enter the URL where the file is hosted</p>
+              <label className="text-sm font-medium">Upload File *</label>
+              <div className="mt-1 flex items-center gap-3">
+                <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg bg-gray-50 hover:bg-gray-100">
+                  <Upload className="h-4 w-4" /> Choose file
+                  <input type="file" name="file" required className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const fileNameInput = e.currentTarget.form?.querySelector('input[name="file_name"]') as HTMLInputElement
+                      if (fileNameInput && !fileNameInput.value) fileNameInput.value = file.name
+                    }
+                  }} />
+                </label>
+                <span id="file-name" className="text-sm text-gray-600">No file selected</span>
+                <script dangerouslySetInnerHTML={{ __html: `
+                  document.querySelector('input[type="file"]').addEventListener('change', (e) => {
+                    const fileNameEl = document.getElementById('file-name')
+                    if (e.target.files.length > 0) fileNameEl.textContent = e.target.files[0].name
+                    else fileNameEl.textContent = 'No file selected'
+                  })
+                ` }} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
