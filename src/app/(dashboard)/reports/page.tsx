@@ -6,6 +6,8 @@ import ReportsClient from '@/components/reports/ReportsClient'
 
 export const metadata: Metadata = { title: 'Reports & Analytics' }
 
+export const revalidate = 0
+
 export default async function ReportsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

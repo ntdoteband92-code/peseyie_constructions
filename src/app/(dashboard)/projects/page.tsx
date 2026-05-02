@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getProjects } from '@/app/actions/projects'
 import ProjectsListClient from '@/components/projects/ProjectsListClient'
 
-export const metadata: Metadata = { title: 'Projects' }
+export const revalidate = 0
+
+ export const metadata: Metadata = { title: 'Projects' }
 
 export default async function ProjectsPage() {
   const supabase = await createClient()

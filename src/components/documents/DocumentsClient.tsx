@@ -538,17 +538,12 @@ export default function DocumentsClient({
                     if (file) {
                       const fileNameInput = e.currentTarget.form?.querySelector('input[name="file_name"]') as HTMLInputElement
                       if (fileNameInput && !fileNameInput.value) fileNameInput.value = file.name
+                      const fileNameEl = e.currentTarget.parentElement?.parentElement?.querySelector('.file-name-display')
+                      if (fileNameEl) fileNameEl.textContent = file.name
                     }
                   }} />
                 </label>
-                <span id="file-name" className="text-sm text-gray-600">No file selected</span>
-                <script dangerouslySetInnerHTML={{ __html: `
-                  document.querySelector('input[type="file"]').addEventListener('change', (e) => {
-                    const fileNameEl = document.getElementById('file-name')
-                    if (e.target.files.length > 0) fileNameEl.textContent = e.target.files[0].name
-                    else fileNameEl.textContent = 'No file selected'
-                  })
-                ` }} />
+                <span className="file-name-display text-sm text-gray-600">No file selected</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

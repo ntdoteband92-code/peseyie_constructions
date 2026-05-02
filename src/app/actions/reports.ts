@@ -28,6 +28,13 @@ async function getMyRole(): Promise<AppRole | null> {
 export async function getReportSummary() {
   const supabase = await createAdminClient()
 
+  // Debug: Count projects directly
+  const { count: projectCount, data: projectList } = await supabase
+    .from('projects')
+    .select('id, project_name, project_status', { count: 'exact' })
+    .eq('is_deleted', false)
+  console.log(`DEBUG: Found ${projectCount} projects in database:`, projectList)
+
   const [projectsResult, raBillsResult, expensesResult, workersResult, materialsResult, diaryResult] = await Promise.all([
     supabase.from('projects').select('id, project_name, project_status, project_value, start_date, end_date', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('ra_bills').select('id, bill_no, bill_date, bill_amount, status, project_id', { count: 'exact' }).eq('is_deleted', false),
@@ -109,8 +116,9 @@ export async function getReportSummary() {
 
   return {
     stats: {
-      total_projects: projects.length,
-      active_projects: projects.filter((p: any) => p.project_status === 'in_progress').length,
+  total_projects: projects.length,
+  // Include ALL non-deleted projects, not just in_progress
+  active_projects: projects.length,
       totalProjectValue,
       total_ra_bills: totalRAbills,
       total_expenses: totalExpenses,
