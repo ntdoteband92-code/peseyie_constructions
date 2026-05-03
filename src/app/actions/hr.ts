@@ -98,6 +98,10 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
       full_name: validated.data.full_name,
       role: validated.data.role,
       contact_number: validated.data.contact_number ?? null,
+      employment_type: validated.data.employment_type ?? 'direct',
+      wage_type: validated.data.wage_type ?? 'daily_rate',
+      wage_rate: validated.data.wage_rate ?? 0,
+      status: validated.data.status ?? 'active',
       created_by: user?.id,
     } as any)
     if (error) {
