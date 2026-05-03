@@ -135,6 +135,46 @@ export default function FinancialsClient({
     }
   }
 
+  const handleExpenseSubmit = async (formData: FormData) => {
+    try {
+      const payload = Object.fromEntries(formData)
+      const res = await fetch(`/api/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'createExpense', ...payload }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to create')
+      }
+      toast.success('Expense added')
+      setShowExpenseDialog(false)
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create')
+    }
+  }
+
+  const handleIncomeSubmit = async (formData: FormData) => {
+    try {
+      const payload = Object.fromEntries(formData)
+      const res = await fetch(`/api/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'createIncome', ...payload }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to create')
+      }
+      toast.success('Income entry added')
+      setShowIncomeDialog(false)
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -330,7 +370,7 @@ export default function FinancialsClient({
       <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Add Expense</DialogTitle></DialogHeader>
-          <form action={`/api/expenses?/create`} method="post" className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleExpenseSubmit(new FormData(e.currentTarget)) }} className="space-y-4">
             <input type="hidden" name="action" value="createExpense" />
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -390,7 +430,7 @@ export default function FinancialsClient({
       <Dialog open={showIncomeDialog} onOpenChange={setShowIncomeDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Add Income / Receipt</DialogTitle></DialogHeader>
-          <form action={`/api/expenses?/createIncome`} method="post" className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleIncomeSubmit(new FormData(e.currentTarget)) }} className="space-y-4">
             <input type="hidden" name="action" value="createIncome" />
             <div className="grid gap-4 md:grid-cols-2">
               <div>

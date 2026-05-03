@@ -8,7 +8,11 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const formData = await request.formData()
+    const body = await request.json()
+    const formData = new FormData()
+    for (const [key, value] of Object.entries(body)) {
+      formData.append(key, value !== null && value !== undefined ? String(value) : '')
+    }
     const result = await createBlastLog(null, formData)
     if (result?.error) return NextResponse.json({ error: result.error }, { status: 400 })
     return NextResponse.json({ success: true })

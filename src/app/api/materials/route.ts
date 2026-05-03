@@ -8,15 +8,27 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const formData = await request.formData()
-    const action = formData.get('action')
+    const body = await request.json()
+    const { action, ...payload } = body
 
     let result
     if (action === 'createInward') {
+      const formData = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createMaterialInward(null, formData)
     } else if (action === 'createExplosive') {
+      const formData = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createExplosiveEntry(null, formData)
     } else {
+      const formData = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createMaterial(null, formData)
     }
 

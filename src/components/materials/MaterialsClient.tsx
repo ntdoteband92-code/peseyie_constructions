@@ -81,18 +81,23 @@ export default function MaterialsClient({
 
   const handleSubmit = async (formData: FormData, action: string) => {
     try {
-      const res = await fetch(`/api/materials?/create`, {
+      const payload = Object.fromEntries(formData)
+      const res = await fetch(`/api/materials`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload }),
       })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed')
+      }
       toast.success('Created successfully')
       setShowMaterialDialog(false)
       setShowInwardDialog(false)
       setShowExplosiveDialog(false)
       router.refresh()
-    } catch {
-      toast.error('Failed to create')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create')
     }
   }
 

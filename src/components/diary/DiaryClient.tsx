@@ -84,14 +84,22 @@ export default function CombinedClient({
 
   const handleSubmit = async (formData: FormData, action: string) => {
     try {
-      const res = await fetch(`/api/diary?/create`, { method: 'POST', body: formData })
-      if (!res.ok) throw new Error('Failed')
+      const payload = Object.fromEntries(formData)
+      const res = await fetch(`/api/diary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed')
+      }
       toast.success('Created successfully')
       setShowDiaryDialog(false)
       setShowDocDialog(false)
       router.refresh()
-    } catch {
-      toast.error('Failed to create')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create')
     }
   }
 

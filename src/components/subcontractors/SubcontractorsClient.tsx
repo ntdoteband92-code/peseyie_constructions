@@ -198,17 +198,25 @@ export default function SubcontractorsClient({
 
   const handleSubmit = async (formData: FormData, type: 'sub' | 'wo') => {
     try {
-      const url = type === 'sub' ? '/api/subcontractors' : '/api/subcontractors?/work-orders'
-      const res = await fetch(url, { method: 'POST', body: formData })
-      if (!res.ok) throw new Error('Failed')
+      const payload = Object.fromEntries(formData)
+      const action = type === 'sub' ? 'createSubcontractor' : 'createWorkOrder'
+      const res = await fetch('/api/subcontractors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed')
+      }
       toast.success(type === 'sub' ? 'Subcontractor added' : 'Work order created')
       setShowSubDialog(false)
       setShowWODialog(false)
       setEditSub(null)
       setEditWO(null)
       router.refresh()
-    } catch {
-      toast.error('Operation failed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Operation failed')
     }
   }
 

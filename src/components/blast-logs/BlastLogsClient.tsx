@@ -57,13 +57,21 @@ export default function BlastLogsClient({
 
   const handleSubmit = async (formData: FormData) => {
     try {
-      const res = await fetch('/api/blast-logs', { method: 'POST', body: formData })
-      if (!res.ok) throw new Error('Failed')
+      const payload = Object.fromEntries(formData)
+      const res = await fetch('/api/blast-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed')
+      }
       toast.success('Blast record created successfully')
       setShowDialog(false)
       router.refresh()
-    } catch {
-      toast.error('Failed to create blast record')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create blast record')
     }
   }
 
@@ -237,7 +245,7 @@ export default function BlastLogsClient({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Record Blast Operation</DialogTitle></DialogHeader>
-          <form action={handleSubmit as any} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit(new FormData(e.currentTarget)) }} className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium">Project *</label>

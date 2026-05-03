@@ -8,13 +8,21 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const formData = await request.formData()
-    const action = formData.get('action') ?? 'createSubcontractor'
+    const body = await request.json()
+    const { action, ...payload } = body
 
     let result
     if (action === 'createWorkOrder') {
+      const formData = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createWorkOrder(null, formData)
     } else {
+      const formData = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createSubcontractor(null, formData)
     }
 
