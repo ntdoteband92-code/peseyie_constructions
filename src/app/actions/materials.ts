@@ -81,7 +81,7 @@ export async function createMaterial(_prevState: any, formData: FormData): Promi
 const MaterialInwardSchema = z.object({
   material_id: z.string().uuid().min(1, 'Material is required'),
   project_id: z.string().uuid().min(1, 'Project is required'),
-  quantity: z.coerce.number().min(0.01, 'Quantity must be positive'),
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1'),
   rate_per_unit: z.coerce.number().min(0),
   total_amount: z.coerce.number().min(0),
   vendor_id: z.string().optional(),
@@ -141,8 +141,8 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
 
 // Explosives Register (special compliance module)
 const ExplosiveSchema = z.object({
-  license_id: z.string().uuid().optional(),
-  project_id: z.string().uuid().optional(),
+  license_id: z.string().optional(),
+  project_id: z.string().optional(),
   entry_date: z.string().min(1, 'Date is required'),
   entry_type: z.enum(['inward', 'issue', 'return']),
   explosive_type: z.string().min(1, 'Type is required'),
@@ -154,7 +154,7 @@ const ExplosiveSchema = z.object({
   issued_to: z.string().optional(),
   received_by: z.string().optional(),
   is_correction: z.boolean().optional(),
-  correction_of: z.string().uuid().optional(),
+  correction_of: z.string().optional(),
   correction_reason: z.string().optional(),
 })
 
@@ -180,6 +180,7 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
       license_id: rawData.license_id === '' ? null : rawData.license_id,
       project_id: rawData.project_id === '' ? null : rawData.project_id,
       quantity: rawData.quantity === '' ? 0 : Number(rawData.quantity),
+      entry_date: rawData.entry_date || new Date().toISOString().split('T')[0],
     }
 
     const validated = ExplosiveSchema.safeParse(rawDataClean)

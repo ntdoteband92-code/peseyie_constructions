@@ -288,7 +288,7 @@ export default function MaterialsClient({
                   </div>
                   <div>
                     <label className="text-sm font-medium">Date *</label>
-                    <input type="date" name="inward_date" required defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                    <input type="date" name="entry_date" required defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Quantity (kg) *</label>
@@ -367,7 +367,7 @@ export default function MaterialsClient({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Quantity (units) *</label>
-                <input type="number" name="quantity" min="0.01" required placeholder="Enter quantity" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input type="number" name="quantity" min="1" required placeholder="Enter quantity" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Rate per Unit (₹)</label>
