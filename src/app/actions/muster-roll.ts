@@ -47,11 +47,11 @@ export async function getMusterRollData(projectId: string, month: string) {
       .from('attendance')
       .select('*')
       .eq('project_id', projectId)
-      .gte('date', startDate)
-      .lte('date', endDate),
+      .gte('work_date', startDate)
+      .lte('work_date', endDate),
     supabase
       .from('diary_entries')
-      .select('entry_date, workers_present')
+      .select('entry_date, workers_count')
       .eq('project_id', projectId)
       .gte('entry_date', startDate)
       .lte('entry_date', endDate),
@@ -63,8 +63,8 @@ export async function getMusterRollData(projectId: string, month: string) {
 
   const diaryWorkersMap: Record<string, number> = {}
   diaries.forEach((d: any) => {
-    if (d.entry_date && d.workers_present) {
-      diaryWorkersMap[d.entry_date] = d.workers_present
+    if (d.entry_date && d.workers_count) {
+      diaryWorkersMap[d.entry_date] = d.workers_count
     }
   })
 
@@ -72,8 +72,8 @@ export async function getMusterRollData(projectId: string, month: string) {
   const presentDays: Record<string, Record<string, boolean>> = {}
   workers.forEach((w: any) => { presentDays[w.id] = {} })
   attendance.forEach((a: any) => {
-    if (presentDays[a.worker_id]) {
-      presentDays[a.worker_id][a.date] = a.status === 'present'
+    if (presentDays[a.employee_id]) {
+      presentDays[a.employee_id][a.work_date] = a.status === 'present'
     }
   })
 
@@ -119,13 +119,13 @@ export async function saveAttendance(projectId: string, records: { workerId: str
 
   const toInsert = records.map(r => ({
     project_id: projectId,
-    worker_id: r.workerId,
-    date: r.date,
+    employee_id: r.workerId,
+    work_date: r.date,
     status: r.status,
     created_by: user.id,
   }))
 
-  const { error } = await adminClient.from('attendance').upsert(toInsert as any, { onConflict: 'project_id,worker_id,date' })
+  const { error } = await adminClient.from('attendance').upsert(toInsert as any, { onConflict: 'project_id,employee_id,work_date' })
   if (error) throw error
   revalidatePath('/hr')
 }
@@ -138,8 +138,8 @@ export async function getMusterExportData(projectId: string, month: string) {
 
   const [workersResult, attendanceResult, diariesResult] = await Promise.all([
     supabase.from('workers').select('*').eq('is_deleted', false).eq('is_active', true).order('worker_name'),
-    supabase.from('attendance').select('*').eq('project_id', projectId).gte('date', `${month}-01`).lte('date', `${month}-31`),
-    supabase.from('diary_entries').select('entry_date, workers_present').eq('project_id', projectId).gte('entry_date', `${month}-01`).lte('entry_date', `${month}-31`),
+    supabase.from('attendance').select('*').eq('project_id', projectId).gte('work_date', `${month}-01`).lte('work_date', `${month}-31`),
+    supabase.from('diary_entries').select('entry_date, workers_count').eq('project_id', projectId).gte('entry_date', `${month}-01`).lte('entry_date', `${month}-31`),
   ])
 
   const workers = workersResult.data ?? []
@@ -148,7 +148,7 @@ export async function getMusterExportData(projectId: string, month: string) {
 
   const diaryWorkersMap: Record<string, number> = {}
   diaries.forEach((d: any) => {
-    if (d.entry_date && d.workers_present) diaryWorkersMap[d.entry_date] = d.workers_present
+    if (d.entry_date && d.workers_count) diaryWorkersMap[d.entry_date] = d.workers_count
   })
 
   const [year, m] = month.split('-')
@@ -156,7 +156,7 @@ export async function getMusterExportData(projectId: string, month: string) {
 
   const presentDays: Record<string, Record<string, boolean>> = {}
   workers.forEach((w: any) => { presentDays[w.id] = {} })
-  attendance.forEach((a: any) => { if (presentDays[a.worker_id]) presentDays[a.worker_id][a.date] = a.status === 'present' })
+  attendance.forEach((a: any) => { if (presentDays[a.employee_id]) presentDays[a.employee_id][a.work_date] = a.status === 'present' })
 
   const rows = workers.map((w: any) => {
     let present = 0

@@ -48,9 +48,9 @@ export default function BlastLogsClient({
     return blastLogs.filter(log => {
       const matchesProject = projectFilter === 'all' || log.project_id === projectFilter
       const matchesSearch = search === '' ||
-        log.location?.toLowerCase().includes(search.toLowerCase()) ||
-        log.blast_type?.toLowerCase().includes(search.toLowerCase()) ||
-        log.shot_firer_name?.toLowerCase().includes(search.toLowerCase())
+        log.location_chainage?.toLowerCase().includes(search.toLowerCase()) ||
+        log.rock_type?.toLowerCase().includes(search.toLowerCase()) ||
+        log.safety_officer?.toLowerCase().includes(search.toLowerCase())
       return matchesProject && matchesSearch
     })
   }, [blastLogs, search, projectFilter])
@@ -144,30 +144,25 @@ export default function BlastLogsClient({
                           <div className="text-xs text-gray-500">{log.blast_time ?? ''}</div>
                         </td>
                         <td className="p-3 text-gray-600">{log.project?.project_name ?? '—'}</td>
-                        <td className="p-3 font-medium">{log.location ?? '—'}</td>
-                        <td className="p-3"><span className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-600">{log.blast_type ?? '—'}</span></td>
+                        <td className="p-3 font-medium">{log.location_chainage ?? '—'}</td>
+                        <td className="p-3"><span className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-600">{log.rock_type ?? '—'}</span></td>
                         <td className="p-3">
                           {log.explosive_type ? (
                             <div>
                               <div className="text-xs text-gray-500">{log.explosive_type}</div>
-                              {log.explosive_qty_kg && <div className="text-xs text-gray-500">{log.explosive_qty_kg} kg</div>}
+                              {log.total_explosive_kg && <div className="text-xs text-gray-500">{log.total_explosive_kg} kg</div>}
                             </div>
                           ) : '—'}
                         </td>
                         <td className="p-3">
                           <div className="flex flex-col gap-1">
-                            {log.fly_rock_incident ? (
-                              <span className="flex items-center gap-1 text-xs text-red-600"><AlertTriangle className="h-3 w-3" />Fly rock</span>
-                            ) : log.misfires > 0 ? (
-                              <span className="flex items-center gap-1 text-xs text-amber-600"><AlertTriangle className="h-3 w-3" />{log.misfires} misfire(s)</span>
+                            {log.misfires_count > 0 ? (
+                              <span className="flex items-center gap-1 text-xs text-amber-600"><AlertTriangle className="h-3 w-3" />{log.misfires_count} misfire(s)</span>
                             ) : (
                               <span className="flex items-center gap-1 text-xs text-green-600"><CheckCircle className="h-3 w-3" />Clear</span>
                             )}
                             {log.clearance_confirmed && (
                               <span className="flex items-center gap-1 text-xs text-green-600"><CheckCircle className="h-3 w-3" />500m cleared</span>
-                            )}
-                            {log.complaints_received && (
-                              <span className="flex items-center gap-1 text-xs text-amber-600"><AlertTriangle className="h-3 w-3" />Complaint</span>
                             )}
                           </div>
                         </td>
@@ -261,21 +256,15 @@ export default function BlastLogsClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Location / Chainage *</label>
-                <input name="location" required placeholder="e.g., CH 0+500 to 0+600" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="location_chainage" required placeholder="e.g., CH 0+500 to 0+600" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="text-sm font-medium">Blast Type *</label>
-                <select name="blast_type" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Select type</option>
-                  {BLAST_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <label className="text-sm font-medium">Rock Type *</label>
+                <input name="rock_type" required placeholder="e.g., Granite, Limestone" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="text-sm font-medium">Weather</label>
-                <select name="weather_condition" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Select</option>
-                  {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
-                </select>
+                <label className="text-sm font-medium">Bench Height (m)</label>
+                <input type="number" step="0.1" name="bench_height_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
             </div>
 
@@ -283,20 +272,24 @@ export default function BlastLogsClient({
               <h4 className="text-sm font-medium text-gray-700 mb-3">Blast Pattern</h4>
               <div className="grid gap-4 md:grid-cols-4">
                 <div>
-                  <label className="text-xs text-gray-500">Drill Depth (m)</label>
-                  <input type="number" step="0.1" name="drill_depth_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Hole Depth (m)</label>
+                  <input type="number" step="0.1" name="hole_depth_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">No. of Holes</label>
-                  <input type="number" name="no_of_holes" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <input type="number" name="holes_drilled" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Spacing (m)</label>
-                  <input type="number" step="0.1" name="spacing_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Hole Diameter (mm)</label>
+                  <input type="number" step="0.1" name="hole_diameter_mm" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Burden (m)</label>
                   <input type="number" step="0.1" name="burden_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Spacing (m)</label>
+                  <input type="number" step="0.1" name="spacing_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
               </div>
             </div>
@@ -312,8 +305,8 @@ export default function BlastLogsClient({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Qty (kg)</label>
-                  <input type="number" step="0.1" name="explosive_qty_kg" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Total Explosive (kg)</label>
+                  <input type="number" step="0.1" name="total_explosive_kg" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Detonator Type</label>
@@ -321,7 +314,7 @@ export default function BlastLogsClient({
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">No. of Detonators</label>
-                  <input type="number" name="no_of_detonators" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <input type="number" name="detonators_count" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Initiation System</label>
@@ -331,10 +324,6 @@ export default function BlastLogsClient({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Total Charge (kg)</label>
-                  <input type="number" step="0.1" name="total_charge_kg" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                </div>
-                <div>
                   <label className="text-xs text-gray-500">Volume Blasted (CUM)</label>
                   <input type="number" step="0.1" name="volume_blasted_cum" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
@@ -342,58 +331,18 @@ export default function BlastLogsClient({
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Safety & Monitoring</h4>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <label className="text-xs text-gray-500">PPV (mm/s)</label>
-                  <input type="number" step="0.1" name="peak_particle_velocity_mm_s" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">Air Overpressure (dB)</label>
-                  <input type="number" name="air_overpressure_db" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">Temperature (°C)</label>
-                  <input type="number" name="temperature_c" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Incidents & Safety Compliance</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Safety & Compliance</h4>
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-6">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="ground_vibration_measured" value="true" className="h-4 w-4 rounded" />
-                    Ground Vibration Measured
-                  </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="clearance_confirmed" value="true" className="h-4 w-4 rounded" />
                     500m Clearance Confirmed *
                   </label>
                 </div>
-                <div className="flex flex-wrap items-center gap-6">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="fly_rock_incident" value="true" className="h-4 w-4 rounded" />
-                    Fly Rock Incident
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="noise_incident" value="true" className="h-4 w-4 rounded" />
-                    Noise Incident
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="complaints_received" value="true" className="h-4 w-4 rounded" />
-                    Complaints Received
-                  </label>
-                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-xs text-gray-500">No. of Misfires</label>
-                    <input type="number" name="misfires" min="0" defaultValue={0} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Fly Rock Distance (m)</label>
-                    <input type="number" step="0.1" name="fly_rock_distance_m" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                    <input type="number" name="misfires_count" min="0" defaultValue={0} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                   </div>
                 </div>
                 <div>
@@ -401,38 +350,29 @@ export default function BlastLogsClient({
                   <input name="misfire_action" placeholder="Describe action taken for misfire(s)" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Police / Authority Intimation Reference</label>
-                  <input name="police_intimation" placeholder="e.g., Police Ref No. 123/2026, Dt. 01/05/2026" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Authority Intimation Reference</label>
+                  <input name="authority_intimation_ref" placeholder="e.g., Ref No. 123/2026, Dt. 01/05/2026" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
               </div>
             </div>
 
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-3">Personnel</h4>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-xs text-gray-500">Shot Firer Name</label>
-                  <input name="shot_firer_name" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Safety Officer</label>
+                  <input name="safety_officer" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">License No.</label>
-                  <input name="shot_firer_license_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">Supervisor on Duty</label>
-                  <input name="supervisor_on_duty" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <label className="text-xs text-gray-500">Result</label>
+                  <input name="result" placeholder="e.g., Successful, Partial, etc." className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium">Result Summary</label>
-              <textarea name="result_summary" rows={2} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Brief summary of blast outcome..." />
-            </div>
-
-            <div>
               <label className="text-sm font-medium">Remarks</label>
-              <input name="remarks" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <textarea name="remarks" rows={2} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Additional notes..." />
             </div>
 
             <DialogFooter>

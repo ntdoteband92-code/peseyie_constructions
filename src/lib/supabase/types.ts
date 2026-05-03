@@ -477,6 +477,45 @@ export interface Database {
           created_by?: string | null
         }
       }
+      advance_records: {
+        Row: {
+          id: string
+          employee_id: string
+          project_id: string
+          advance_date: string
+          amount_given: number
+          amount_recovered: number | null
+          reason: string | null
+          approved_by: string | null
+          is_deleted: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          employee_id: string
+          project_id: string
+          advance_date: string
+          amount_given: number
+          amount_recovered?: number | null
+          reason?: string | null
+          approved_by?: string | null
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          employee_id?: string
+          project_id?: string
+          advance_date?: string
+          amount_given?: number
+          amount_recovered?: number | null
+          reason?: string | null
+          approved_by?: string | null
+          is_deleted?: boolean
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
       vendors: {
         Row: {
           id: string
@@ -514,6 +553,42 @@ export interface Database {
           pan?: string | null
           material_supplied?: string | null
           credit_days?: number | null
+          is_deleted?: boolean
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      workers: {
+        Row: {
+          id: string
+          worker_name: string
+          daily_wage: number | null
+          trade: string | null
+          father_name: string | null
+          date_of_joining: string | null
+          is_active: boolean
+          is_deleted: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          worker_name: string
+          daily_wage?: number | null
+          trade?: string | null
+          father_name?: string | null
+          date_of_joining?: string | null
+          is_active?: boolean
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          worker_name?: string
+          daily_wage?: number | null
+          trade?: string | null
+          father_name?: string | null
+          date_of_joining?: string | null
+          is_active?: boolean
           is_deleted?: boolean
           updated_at?: string
           created_by?: string | null

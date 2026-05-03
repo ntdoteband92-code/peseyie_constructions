@@ -70,14 +70,14 @@ export default function CombinedClient({
   const filteredDiary = useMemo(() => {
     return diaryEntries.filter(d => {
       const matchesProject = projectFilter === 'all' || d.project_id === projectFilter
-      const matchesSearch = search === '' || d.work_summary?.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = search === '' || d.work_done?.toLowerCase().includes(search.toLowerCase())
       return matchesProject && matchesSearch
     })
   }, [diaryEntries, search, projectFilter])
 
   const filteredDocs = useMemo(() => {
     return documents.filter(d => {
-      const matchesSearch = search === '' || d.document_name?.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = search === '' || d.file_name?.toLowerCase().includes(search.toLowerCase())
       return matchesSearch
     })
   }, [documents, search])
@@ -181,9 +181,9 @@ export default function CombinedClient({
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2">{entry.work_summary}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2">{entry.work_done}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                          {entry.workers_present && <span>👷 {entry.workers_present} workers</span>}
+                          {entry.workers_count && <span>👷 {entry.workers_count} workers</span>}
                           {entry.equipment_on_site && <span>🚜 {entry.equipment_on_site}</span>}
                           {entry.created_by_user && <span>By {entry.created_by_user.full_name}</span>}
                           <span>{formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}</span>
@@ -223,7 +223,7 @@ export default function CombinedClient({
                     const isExpired = doc.expiry_date && new Date(doc.expiry_date) < now
                     return (
                       <tr key={doc.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3 font-medium">{doc.document_name}</td>
+                        <td className="p-3 font-medium">{doc.file_name}</td>
                         <td className="p-3 text-gray-600">{doc.project?.project_name ?? '—'}</td>
                         <td className="p-3"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs">{doc.category}</span></td>
                         <td className="p-3">
@@ -277,11 +277,11 @@ export default function CombinedClient({
               </div>
               <div className="md:col-span-2">
                 <label className="text-sm font-medium">Work Done Today *</label>
-                <textarea name="work_summary" required rows={3} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Describe work activities, sections worked on, chainage progress..." />
+                <textarea name="work_done" required rows={3} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="Describe work activities, sections worked on, chainage progress..." />
               </div>
               <div>
-                <label className="text-sm font-medium">Workers Present</label>
-                <input type="number" name="workers_present" min="0" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <label className="text-sm font-medium">Workers Count</label>
+                <input type="number" name="workers_count" min="0" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Equipment on Site</label>
@@ -316,7 +316,7 @@ export default function CombinedClient({
             <input type="hidden" name="action" value="createDocument" />
             <div>
               <label className="text-sm font-medium">Document Name *</label>
-              <input name="document_name" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <input name="file_name" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="text-sm font-medium">Category *</label>
@@ -333,7 +333,7 @@ export default function CombinedClient({
             </div>
             <div>
               <label className="text-sm font-medium">File URL *</label>
-              <input name="file_url" required placeholder="https://..." className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <input name="storage_url" required placeholder="https://..." className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="text-sm font-medium">Expiry Date</label>

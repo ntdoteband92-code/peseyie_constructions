@@ -48,8 +48,8 @@ const EmployeeSchema = z.object({
   wage_rate: z.coerce.number().optional(),
   pf_applicable: z.boolean().optional(),
   esi_applicable: z.boolean().optional(),
-  bank_account: z.string().optional(),
-  ifsc_code: z.string().optional(),
+  bank_account_no: z.string().optional(),
+  bank_ifsc: z.string().optional(),
   status: z.enum(['active', 'inactive', 'left']).default('active'),
 })
 
@@ -93,7 +93,7 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
 // Attendance / Muster Roll
 const AttendanceSchema = z.object({
   project_id: z.string().uuid().min(1, 'Project is required'),
-  entry_date: z.string().min(1, 'Date is required'),
+  work_date: z.string().min(1, 'Date is required'),
   employee_id: z.string().uuid().min(1, 'Employee is required'),
   status: z.enum(['present', 'absent', 'half_day', 'overtime', 'leave']),
   ot_hours: z.coerce.number().optional().nullable(),
@@ -107,10 +107,10 @@ export async function getAttendance(projectId: string, month: string) {
     .from('attendance')
     .select('*, employee:employees(full_name, wage_rate, wage_type)')
     .eq('project_id', projectId)
-    .gte('entry_date', startDate)
-    .lte('entry_date', endDate)
+    .gte('work_date', startDate)
+    .lte('work_date', endDate)
     .eq('is_deleted', false)
-    .order('entry_date')
+    .order('work_date')
   if (error) throw error
   return data
 }
@@ -134,7 +134,7 @@ export async function markAttendance(entries: {
     }))
 
     const { error } = await adminClient.from('attendance').upsert(records as any, {
-      onConflict: 'project_id,entry_date,employee_id',
+      onConflict: 'project_id,work_date,employee_id',
     })
     if (error) return { error: error.message }
     revalidatePath('/hr')
@@ -148,7 +148,7 @@ export async function markAttendance(entries: {
 const AdvanceSchema = z.object({
   employee_id: z.string().uuid().min(1, 'Employee is required'),
   project_id: z.string().uuid().min(1, 'Project is required'),
-  amount: z.coerce.number().min(1, 'Amount must be positive'),
+  amount_given: z.coerce.number().min(1, 'Amount must be positive'),
   advance_date: z.string().min(1, 'Date is required'),
   reason: z.string().optional(),
 })

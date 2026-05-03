@@ -43,7 +43,7 @@ type DashboardData = {
     id: string
     entry_date: string
     weather: string
-    work_summary: string
+    work_done: string
     project?: { project_name: string } | null
     created_by_user?: { full_name: string } | null
   }[]
@@ -332,7 +332,7 @@ export default function DashboardClient({ data }: { data: DashboardData | null }
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">
-                      {entry.work_summary || 'No work summary'}
+                      {entry.work_done || 'No work done recorded'}
                     </p>
                     {entry.created_by_user && (
                       <p className="text-xs text-gray-400 mt-1">

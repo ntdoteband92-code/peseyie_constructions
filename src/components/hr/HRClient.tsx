@@ -73,7 +73,7 @@ export default function HRClient({
   }, [employees, search, roleFilter, statusFilter])
 
   const advanceStats = useMemo(() => {
-    const total = advances.reduce((s, a) => s + (a.amount ?? 0), 0)
+    const total = advances.reduce((s, a) => s + (a.amount_given ?? 0), 0)
     const activeEmployees = employees.filter(e => e.status === 'active').length
     return { total, activeEmployees, count: advances.length }
   }, [advances, employees])
@@ -238,7 +238,7 @@ export default function HRClient({
                         <td className="p-3">{a.advance_date ? format(new Date(a.advance_date), 'dd/MM/yyyy') : '—'}</td>
                         <td className="p-3 font-medium">{a.employee?.full_name ?? '—'}</td>
                         <td className="p-3 text-gray-600">{a.project?.project_name ?? '—'}</td>
-                        <td className="p-3 text-right font-medium text-red-600">{formatINR(a.amount)}</td>
+                        <td className="p-3 text-right font-medium text-red-600">{formatINR(a.amount_given)}</td>
                         <td className="p-3 text-gray-500">{a.reason ?? '—'}</td>
                       </tr>
                     ))}
@@ -305,12 +305,12 @@ export default function HRClient({
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Bank Account</label>
-                <input name="bank_account" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <label className="text-sm font-medium">Bank Account No.</label>
+                <input name="bank_account_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">IFSC Code</label>
-                <input name="ifsc_code" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="bank_ifsc" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-sm font-medium">Address</label>
@@ -349,7 +349,7 @@ export default function HRClient({
             </div>
             <div>
               <label className="text-sm font-medium">Amount (₹) *</label>
-              <input type="number" name="amount" min="1" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <input type="number" name="amount_given" min="1" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="text-sm font-medium">Date *</label>

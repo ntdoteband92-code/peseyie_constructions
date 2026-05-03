@@ -37,46 +37,33 @@ const BlastLogSchema = z.object({
   project_id: z.string().uuid().min(1, 'Project is required'),
   blast_date: z.string().min(1, 'Blast date is required'),
   blast_time: z.string().min(1, 'Blast time is required'),
-  location: z.string().min(1, 'Location/Chainage is required'),
-  blast_type: z.string().min(1, 'Blast type is required'),
-  drill_depth_m: z.coerce.number().optional().nullable(),
-  no_of_holes: z.coerce.number().optional().nullable(),
-  spacing_m: z.coerce.number().optional().nullable(),
+  location_chainage: z.string().min(1, 'Location/Chainage is required'),
+  rock_type: z.string().min(1, 'Rock type is required'),
+  bench_height_m: z.coerce.number().optional().nullable(),
+  hole_depth_m: z.coerce.number().optional().nullable(),
+  holes_drilled: z.coerce.number().optional().nullable(),
+  hole_diameter_mm: z.coerce.number().optional().nullable(),
   burden_m: z.coerce.number().optional().nullable(),
+  spacing_m: z.coerce.number().optional().nullable(),
   explosive_type: z.string().optional(),
-  explosive_qty_kg: z.coerce.number().optional().nullable(),
+  total_explosive_kg: z.coerce.number().optional().nullable(),
+  detonators_count: z.coerce.number().optional().nullable(),
   detonator_type: z.string().optional(),
-  no_of_detonators: z.coerce.number().optional().nullable(),
-  total_charge_kg: z.coerce.number().optional().nullable(),
-  pattern: z.string().optional(),
-  stemming: z.string().optional(),
-  delay_sequence: z.string().optional(),
-  ground_vibration_measured: z.coerce.boolean().optional(),
-  peak_particle_velocity_mm_s: z.coerce.number().optional().nullable(),
-  air_overpressure_db: z.coerce.number().optional().nullable(),
-  fly_rock_incident: z.coerce.boolean().optional(),
-  fly_rock_distance_m: z.coerce.number().optional().nullable(),
-  noise_incident: z.coerce.boolean().optional(),
-  complaints_received: z.coerce.boolean().optional(),
-  weather_condition: z.string().optional(),
-  temperature_c: z.coerce.number().optional().nullable(),
-  result_summary: z.string().optional(),
-  remarks: z.string().optional(),
-  shot_firer_name: z.string().optional(),
-  shot_firer_license_no: z.string().optional(),
-  supervisor_on_duty: z.string().optional(),
-  misfires: z.coerce.number().optional().nullable(),
-  misfire_action: z.string().optional(),
-  clearance_confirmed: z.coerce.boolean().optional(),
-  police_intimation: z.string().optional(),
   initiation_system: z.string().optional(),
+  misfires_count: z.coerce.number().optional().nullable(),
+  misfire_action: z.string().optional(),
+  result: z.string().optional(),
   volume_blasted_cum: z.coerce.number().optional().nullable(),
+  safety_officer: z.string().optional(),
+  clearance_confirmed: z.coerce.boolean().optional(),
+  authority_intimation_ref: z.string().optional(),
+  remarks: z.string().optional(),
 })
 
 export async function getBlastLogs(projectId?: string) {
   const supabase = await createAdminClient()
   let query = supabase
-    .from('blast_logs')
+    .from('blasting_shots')
     .select('*, project:projects(project_name)')
     .eq('is_deleted', false)
     .order('blast_date', { ascending: false })
@@ -91,16 +78,15 @@ export async function getBlastLogs(projectId?: string) {
 export async function getBlastSummary(projectId?: string) {
   const supabase = await createAdminClient()
   let query = supabase
-    .from('blast_logs')
+    .from('blasting_shots')
     .select(`
       project_id,
       project:projects(project_name),
       blast_date,
-      explosive_qty_kg,
-      total_charge_kg,
-      misfires,
+      total_explosive_kg,
+      misfires_count,
       volume_blasted_cum,
-      no_of_holes
+      holes_drilled
     `)
     .eq('is_deleted', false)
 
@@ -135,9 +121,9 @@ export async function getBlastSummary(projectId?: string) {
       }
     }
     summaryByProject[pid].total_shots += 1
-    summaryByProject[pid].total_explosive_kg += Number(log.explosive_qty_kg ?? 0)
-    summaryByProject[pid].total_charge_kg += Number(log.total_charge_kg ?? 0)
-    summaryByProject[pid].total_misfires += Number(log.misfires ?? 0)
+    summaryByProject[pid].total_explosive_kg += Number(log.total_explosive_kg ?? 0)
+    summaryByProject[pid].total_charge_kg += Number(log.total_explosive_kg ?? 0)
+    summaryByProject[pid].total_misfires += Number(log.misfires_count ?? 0)
     summaryByProject[pid].total_volume_cum += Number(log.volume_blasted_cum ?? 0)
     if (!summaryByProject[pid].last_blast_date || log.blast_date > summaryByProject[pid].last_blast_date) {
       summaryByProject[pid].last_blast_date = log.blast_date
@@ -155,7 +141,7 @@ export async function createBlastLog(_prevState: any, formData: FormData): Promi
     if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
 
     const adminClient = await createAdminClient()
-    const { error } = await adminClient.from('blast_logs').insert(validated.data as any)
+    const { error } = await adminClient.from('blasting_shots').insert(validated.data as any)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }
@@ -168,7 +154,7 @@ export async function deleteBlastLog(id: string): Promise<any> {
   try {
     await requireRole(['admin', 'manager'])
     const adminClient = await createAdminClient()
-    const { error } = await (adminClient.from('blast_logs') as any).update({ is_deleted: true }).eq('id', id)
+    const { error } = await (adminClient.from('blasting_shots') as any).update({ is_deleted: true }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/blast-logs')
     return { success: true }

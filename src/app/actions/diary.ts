@@ -39,8 +39,8 @@ const DiarySchema = z.object({
   entry_date: z.string().min(1, 'Date is required'),
   weather_am: z.string().optional(),
   weather_pm: z.string().optional(),
-  work_summary: z.string().min(1, 'Work summary is required'),
-  workers_present: z.coerce.number().optional().nullable(),
+  work_done: z.string().min(1, 'Work summary is required'),
+  workers_count: z.coerce.number().optional().nullable(),
   equipment_on_site: z.string().optional(),
   visitors: z.string().optional(),
   materials_received: z.string().optional(),
@@ -91,8 +91,8 @@ export async function createDiaryEntry(_prevState: any, formData: FormData): Pro
 const DocumentSchema = z.object({
   project_id: z.string().uuid().optional().nullable(),
   category: z.string().min(1, 'Category is required'),
-  document_name: z.string().min(1, 'Document name is required'),
-  file_url: z.string().min(1, 'File URL is required'),
+  file_name: z.string().min(1, 'Document name is required'),
+  storage_url: z.string().min(1, 'File URL is required'),
   expiry_date: z.string().optional().nullable(),
   notes: z.string().optional(),
 })
