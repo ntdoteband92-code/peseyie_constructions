@@ -80,17 +80,22 @@ export default function HRClient({
 
   const handleSubmit = async (formData: FormData, action: string) => {
     try {
-      const res = await fetch(`/api/hr?/create`, {
+      const payload = Object.fromEntries(formData)
+      const res = await fetch(`/api/hr`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed')
+      }
       toast.success('Created successfully')
       setShowEmployeeDialog(false)
       setShowAdvanceDialog(false)
       router.refresh()
-    } catch {
-      toast.error('Failed to create')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create')
     }
   }
 
