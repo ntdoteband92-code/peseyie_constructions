@@ -34,16 +34,13 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
 }
 
 const SubcontractorSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  trade: z.string().min(1, 'Trade is required'),
-  phone: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  firm_name: z.string().min(1, 'Name is required'),
+  specialty: z.string().min(1, 'Trade is required'),
+  contact_phone: z.string().optional(),
   address: z.string().optional(),
-  aadhaar_no: z.string().optional(),
-  gst_no: z.string().optional(),
-  bank_name: z.string().optional(),
-  account_no: z.string().optional(),
-  ifsc_code: z.string().optional(),
+  pan: z.string().optional(),
+  gstin: z.string().optional(),
+  license_info: z.string().optional(),
   is_active: z.coerce.boolean().default(true),
 })
 
@@ -56,7 +53,7 @@ export async function getSubcontractors(search?: string) {
     .order('name')
 
   if (search) {
-    query = query.ilike('name', `%${search}%`)
+    query = query.ilike('firm_name', `%${search}%`)
   }
 
   const { data, error } = await query
@@ -131,11 +128,15 @@ const WorkOrderSchema = z.object({
   project_id: z.string().uuid().min(1, 'Project is required'),
   subcontractor_id: z.string().uuid().min(1, 'Subcontractor is required'),
   work_description: z.string().min(1, 'Work description is required'),
-  scope_of_work: z.string().optional(),
-  contract_value: z.coerce.number().min(0, 'Contract value must be positive'),
+  location_chainage: z.string().optional(),
+  unit: z.string().optional(),
+  quantity: z.coerce.number().optional(),
+  rate: z.coerce.number().optional(),
+  total_value: z.coerce.number().min(0, 'Contract value must be positive'),
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().optional().nullable(),
   status: z.enum(['pending', 'in_progress', 'completed', 'terminated']).default('pending'),
+  tds_pct: z.coerce.number().optional().nullable(),
   remarks: z.string().optional(),
 })
 
@@ -143,7 +144,7 @@ export async function getWorkOrders(subcontractorId?: string) {
   const supabase = await createAdminClient()
   let query = supabase
     .from('work_orders')
-    .select('*, project:projects(project_name), subcontractor:subcontractors(name)')
+    .select('*, project:projects(project_name), subcontractor:subcontractors(firm_name)')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 

@@ -46,18 +46,18 @@ function SubForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="text-sm font-medium">Name *</label>
-          <input name="name" required defaultValue={edit?.name} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <input name="firm_name" required defaultValue={edit?.firm_name} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="text-sm font-medium">Trade *</label>
-          <select name="trade" required defaultValue={edit?.trade} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
+          <select name="specialty" required defaultValue={edit?.specialty} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
             <option value="">Select trade</option>
             {TRADE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
           <label className="text-sm font-medium">Phone</label>
-          <input name="phone" defaultValue={edit?.phone ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <input name="contact_phone" defaultValue={edit?.contact_phone ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="text-sm font-medium">Email</label>
@@ -69,23 +69,11 @@ function SubForm({
         </div>
         <div>
           <label className="text-sm font-medium">Aadhaar No.</label>
-          <input name="aadhaar_no" defaultValue={edit?.aadhaar_no ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <input name="pan" defaultValue={edit?.pan ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="text-sm font-medium">GST No.</label>
-          <input name="gst_no" defaultValue={edit?.gst_no ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Bank Name</label>
-          <input name="bank_name" defaultValue={edit?.bank_name ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Account No.</label>
-          <input name="account_no" defaultValue={edit?.account_no ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label className="text-sm font-medium">IFSC Code</label>
-          <input name="ifsc_code" defaultValue={edit?.ifsc_code ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <input name="gstin" defaultValue={edit?.gstin ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div className="flex items-center gap-2">
           <input type="checkbox" name="is_active" value="true" defaultChecked={edit?.is_active !== false} className="h-4 w-4 rounded" />
@@ -128,7 +116,7 @@ function WOForm({
           <label className="text-sm font-medium">Subcontractor *</label>
           <select name="subcontractor_id" required defaultValue={edit?.subcontractor_id} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
             <option value="">Select subcontractor</option>
-            {subcontractors.filter(s => s.is_active).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {subcontractors.filter(s => s.is_active).map(s => <option key={s.id} value={s.id}>{s.firm_name}</option>)}
           </select>
         </div>
         <div className="md:col-span-2">
@@ -136,12 +124,12 @@ function WOForm({
           <input name="work_description" required defaultValue={edit?.work_description} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div className="md:col-span-2">
-          <label className="text-sm font-medium">Scope of Work</label>
-          <textarea name="scope_of_work" rows={2} defaultValue={edit?.scope_of_work ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <label className="text-sm font-medium">Location / Chainage</label>
+          <textarea name="location_chainage" rows={2} defaultValue={edit?.location_chainage ?? ''} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div>
-          <label className="text-sm font-medium">Contract Value (₹) *</label>
-          <input type="number" name="contract_value" required min="0" step="0.01" defaultValue={edit?.contract_value} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          <label className="text-sm font-medium">Total Value (₹) *</label>
+          <input type="number" name="total_value" required min="0" step="0.01" defaultValue={edit?.total_value} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="text-sm font-medium">Status</label>
@@ -194,9 +182,9 @@ export default function SubcontractorsClient({
 
   const filteredSubcontractors = useMemo(() => {
     return initialSubcontractors.filter(s => {
-      const matchesSearch = search === '' || s.name?.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = search === '' || s.firm_name?.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? s.is_active : !s.is_active)
-      const matchesTrade = tradeFilter === 'all' || s.trade === tradeFilter
+      const matchesTrade = tradeFilter === 'all' || s.specialty === tradeFilter
       return matchesSearch && matchesStatus && matchesTrade
     })
   }, [initialSubcontractors, search, statusFilter, tradeFilter])
@@ -300,8 +288,8 @@ export default function SubcontractorsClient({
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-base">{sub.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{sub.trade}</p>
+                      <CardTitle className="text-base">{sub.firm_name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{sub.specialty}</p>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded ${sub.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {sub.is_active ? 'Active' : 'Inactive'}
@@ -309,12 +297,9 @@ export default function SubcontractorsClient({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  {sub.phone && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="h-3.5 w-3.5" />
-                      {sub.phone}
-                    </div>
-                  )}
+{sub.contact_phone && (
+                        <p className="text-xs text-gray-500">📞 {sub.contact_phone}</p>
+                      )}
                   {sub.email && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Mail className="h-3.5 w-3.5" />
@@ -388,9 +373,9 @@ export default function SubcontractorsClient({
                   {filteredWorkOrders.map(wo => (
                     <tr key={wo.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{projects.find(p => p.id === wo.project_id)?.project_name ?? '—'}</td>
-                      <td className="p-3">{initialSubcontractors.find(s => s.id === wo.subcontractor_id)?.name ?? '—'}</td>
+                      <td className="p-3">{initialSubcontractors.find(s => s.id === wo.subcontractor_id)?.firm_name ?? '—'}</td>
                       <td className="p-3 max-w-xs truncate">{wo.work_description}</td>
-                      <td className="p-3">₹{wo.contract_value?.toLocaleString() ?? 0}</td>
+                      <td className="p-3">₹{wo.total_value?.toLocaleString() ?? 0}</td>
                       <td className="p-3">
                         <span className={`text-xs px-2 py-0.5 rounded ${
                           wo.status === 'completed' ? 'bg-green-100 text-green-700' :

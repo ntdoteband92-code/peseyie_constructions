@@ -69,7 +69,7 @@ export function MusterPDF({ data, daysInMonth, month }: {
           {data.workers.map((w: any, idx: number) => (
             <View key={idx} style={styles.tableRow}>
               <Text style={[styles.cell, { width: `${colWidths.sl}%` }]}>{idx + 1}</Text>
-              <Text style={[styles.cell, { width: `${colWidths.name}%` }]}>{w.name}</Text>
+              <Text style={[styles.cell, { width: `${colWidths.name}%` }]}>{w.worker_name}</Text>
               <Text style={[styles.cell, { width: `${colWidths.trade}%` }]}>{w.trade ?? '—'}</Text>
               <Text style={[styles.cellRight, { width: `${colWidths.wage}%` }]}>{formatINR(w.dailyWage)}</Text>
               {days.map(d => (

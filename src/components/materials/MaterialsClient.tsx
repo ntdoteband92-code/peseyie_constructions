@@ -193,7 +193,7 @@ export default function MaterialsClient({
                         <td className="p-3 text-gray-600">{i.project?.project_name ?? '—'}</td>
                         <td className="p-3 text-right">{i.quantity} {i.material?.unit}</td>
                         <td className="p-3 text-right font-medium text-red-600">{formatINR(i.total_amount)}</td>
-                        <td className="p-3 text-gray-500">{i.supplier_name ?? '—'}</td>
+                        <td className="p-3 text-gray-500">{i.vendor_id ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -239,13 +239,13 @@ export default function MaterialsClient({
                         let balance = 0
                         for (let j = 0; j <= i; j++) {
                           const entry = explosives[j]
-                          if (entry.entry_type === 'inward') balance += entry.quantity_in ?? 0
-                          else if (entry.entry_type === 'issue') balance -= entry.quantity_out ?? 0
-                          else if (entry.entry_type === 'return') balance += entry.quantity_out ?? 0
+                          if (entry.entry_type === 'inward') balance += entry.quantity ?? 0
+                          else if (entry.entry_type === 'issue') balance -= entry.quantity ?? 0
+                          else if (entry.entry_type === 'return') balance += entry.quantity ?? 0
                         }
                         return (
                           <tr key={e.id} className="border-b">
-                            <td className="p-2">{formatDate(e.inward_date || e.issue_date)}</td>
+                            <td className="p-2">{formatDate(e.entry_date)}</td>
                             <td className="p-2">{e.explosive_type}</td>
                             <td className="p-2 text-green-600">{e.entry_type === 'inward' ? `${e.quantity_in}kg` : '—'}</td>
                             <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity_out}kg` : '—'}</td>
@@ -287,19 +287,15 @@ export default function MaterialsClient({
                   </div>
                   <div>
                     <label className="text-sm font-medium">Quantity (kg) *</label>
-                    <input type="number" name="quantity_in" min="0" step="0.1" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                    <input type="number" name="quantity" min="0" step="0.1" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Source / Issued To</label>
-                    <input name="source" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="For issue: who received" />
+                    <input name="source_dealer" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="For issue: who received" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Invoice / Transport Permit</label>
-                    <input name="invoice_number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-                  </div>
-                  <div className="md:col-span-3">
-                    <label className="text-sm font-medium">Remarks</label>
-                    <input name="remarks" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                    <input name="invoice_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
                   </div>
                 </div>
                 <Button type="submit" className="bg-red-600 hover:bg-red-700">Add Entry</Button>
@@ -375,11 +371,11 @@ export default function MaterialsClient({
             </div>
             <div>
               <label className="text-sm font-medium">Supplier</label>
-              <input name="supplier_name" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <input name="vendor_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="text-sm font-medium">Invoice Number</label>
-              <input name="invoice_number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+              <input name="invoice_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowInwardDialog(false)}>Cancel</Button>

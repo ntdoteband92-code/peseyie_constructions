@@ -34,40 +34,38 @@ async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
 }
 
 const EquipmentSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  equipment_name: z.string().min(1, 'Name is required'),
   equipment_type: z.string().min(1, 'Type is required'),
   make: z.string().optional(),
   model: z.string().optional(),
-  registration_number: z.string().optional(),
+  registration_no: z.string().optional(),
   ownership: z.enum(['company_owned', 'hired']).default('company_owned'),
   status: z.enum(['active', 'under_maintenance', 'idle', 'hired_out', 'decommissioned']).default('active'),
-  hire_vendor_name: z.string().optional(),
-  hire_vendor_contact: z.string().optional(),
+  hire_firm_name: z.string().optional(),
+  hire_firm_contact: z.string().optional(),
   hire_rate: z.coerce.number().optional().nullable(),
   hire_rate_unit: z.string().optional(),
   purchase_cost: z.coerce.number().optional().nullable(),
   purchase_date: z.string().optional().nullable(),
-  year_of_manufacture: z.string().optional(),
-  assigned_project_id: z.string().uuid().optional().nullable(),
-  notes: z.string().optional(),
+  year: z.string().optional(),
+  current_project_id: z.string().uuid().optional().nullable(),
 })
 
 const VehicleSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  vehicle_name: z.string().min(1, 'Name is required'),
   vehicle_type: z.string().min(1, 'Type is required'),
-  registration_number: z.string().optional(),
+  registration_no: z.string().optional(),
   make: z.string().optional(),
   model: z.string().optional(),
   ownership: z.enum(['company_owned', 'hired']).default('company_owned'),
   status: z.enum(['active', 'under_maintenance', 'idle', 'hired_out', 'decommissioned']).default('active'),
-  hire_vendor_name: z.string().optional(),
+  hire_firm_name: z.string().optional(),
   hire_rate: z.coerce.number().optional().nullable(),
   hire_rate_unit: z.string().optional(),
-  fitness_certificate_expiry: z.string().optional().nullable(),
+  fitness_expiry: z.string().optional().nullable(),
   insurance_expiry: z.string().optional().nullable(),
   permit_expiry: z.string().optional().nullable(),
-  assigned_project_id: z.string().uuid().optional().nullable(),
-  notes: z.string().optional(),
+  current_project_id: z.string().uuid().optional().nullable(),
 })
 
 export type EquipmentFormState = { success?: boolean; error?: string; errors?: Record<string, string[]> } | null
@@ -76,7 +74,7 @@ export async function getEquipment() {
   const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('equipment')
-    .select('*, project:projects!equipment_assigned_project_id_fkey(id, project_name)')
+    .select('*, project:projects!equipment_current_project_id_fkey(id, project_name)')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 
@@ -88,7 +86,7 @@ export async function getVehicles() {
   const supabase = await createAdminClient()
   const { data, error } = await supabase
     .from('vehicles')
-    .select('*, project:projects!vehicles_assigned_project_id_fkey(id, project_name)')
+    .select('*, project:projects!vehicles_current_project_id_fkey(id, project_name)')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 

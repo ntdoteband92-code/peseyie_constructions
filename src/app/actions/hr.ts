@@ -81,7 +81,12 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const adminClient = await createAdminClient()
-    const { error } = await adminClient.from('employees').insert({ ...validated.data, created_by: user?.id } as any)
+    const { error } = await adminClient.from('employees').insert({
+      full_name: validated.data.full_name,
+      role: validated.data.role,
+      contact_number: validated.data.contact_number ?? null,
+      created_by: user?.id,
+    } as any)
     if (error) return { error: error.message }
     revalidatePath('/hr')
     return { success: true }

@@ -1131,6 +1131,329 @@ export interface Database {
           created_by?: string | null
         }
       }
+      vehicles: {
+        Row: {
+          id: string
+          vehicle_name: string
+          vehicle_type: string
+          registration_no: string | null
+          make: string | null
+          model: string | null
+          ownership: OwnershipType
+          hire_firm_name: string | null
+          hire_rate: number | null
+          hire_rate_unit: string | null
+          fitness_expiry: string | null
+          insurance_expiry: string | null
+          permit_expiry: string | null
+          current_project_id: string | null
+          status: EquipmentStatus
+          is_deleted: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          vehicle_name: string
+          vehicle_type: string
+          registration_no?: string | null
+          make?: string | null
+          model?: string | null
+          ownership?: OwnershipType
+          hire_firm_name?: string | null
+          hire_rate?: number | null
+          hire_rate_unit?: string | null
+          fitness_expiry?: string | null
+          insurance_expiry?: string | null
+          permit_expiry?: string | null
+          current_project_id?: string | null
+          status?: EquipmentStatus
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          vehicle_name?: string
+          vehicle_type?: string
+          registration_no?: string | null
+          make?: string | null
+          model?: string | null
+          ownership?: OwnershipType
+          hire_firm_name?: string | null
+          hire_rate?: number | null
+          hire_rate_unit?: string | null
+          fitness_expiry?: string | null
+          insurance_expiry?: string | null
+          permit_expiry?: string | null
+          current_project_id?: string | null
+          status?: EquipmentStatus
+          is_deleted?: boolean
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      document_versions: {
+        Row: {
+          id: string
+          document_id: string
+          version_no: number
+          storage_url: string
+          notes: string | null
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          document_id: string
+          version_no: number
+          storage_url: string
+          notes?: string | null
+          created_by?: string | null
+        }
+        Update: {
+          document_id?: string
+          version_no?: number
+          storage_url?: string
+          notes?: string | null
+          created_by?: string | null
+        }
+      }
+      income_entries: {
+        Row: {
+          id: string
+          project_id: string | null
+          ra_bill_id: string | null
+          date_received: string
+          amount: number
+          payment_mode: string | null
+          reference_no: string | null
+          remarks: string | null
+          is_deleted: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          project_id?: string | null
+          ra_bill_id?: string | null
+          date_received: string
+          amount: number
+          payment_mode?: string | null
+          reference_no?: string | null
+          remarks?: string | null
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          project_id?: string | null
+          ra_bill_id?: string | null
+          date_received?: string
+          amount?: number
+          payment_mode?: string | null
+          reference_no?: string | null
+          remarks?: string | null
+          is_deleted?: boolean
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      explosives_register: {
+        Row: {
+          id: string
+          license_id: string | null
+          project_id: string | null
+          entry_date: string
+          entry_type: string
+          explosive_type: string
+          quantity: number
+          source_dealer: string | null
+          transport_permit: string | null
+          invoice_no: string | null
+          blast_shot_ref: string | null
+          issued_to: string | null
+          received_by: string | null
+          is_correction: boolean | null
+          correction_of: string | null
+          correction_reason: string | null
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          license_id?: string | null
+          project_id?: string | null
+          entry_date: string
+          entry_type: string
+          explosive_type: string
+          quantity?: number
+          source_dealer?: string | null
+          transport_permit?: string | null
+          invoice_no?: string | null
+          blast_shot_ref?: string | null
+          issued_to?: string | null
+          received_by?: string | null
+          is_correction?: boolean | null
+          correction_of?: string | null
+          correction_reason?: string | null
+          created_by?: string | null
+        }
+        Update: {
+          license_id?: string | null
+          project_id?: string | null
+          entry_date?: string
+          entry_type?: string
+          explosive_type?: string
+          quantity?: number
+          source_dealer?: string | null
+          transport_permit?: string | null
+          invoice_no?: string | null
+          blast_shot_ref?: string | null
+          issued_to?: string | null
+          received_by?: string | null
+          is_correction?: boolean | null
+          correction_of?: string | null
+          correction_reason?: string | null
+          created_by?: string | null
+        }
+      }
+      estimations: {
+        Row: {
+          id: string
+          estimate_name: string
+          tender_id: string | null
+          project_id: string | null
+          estimate_date: string | null
+          overhead_pct: number | null
+          profit_margin_pct: number | null
+          total_direct_cost: number | null
+          grand_total: number | null
+          notes: string | null
+          is_deleted: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          estimate_name: string
+          tender_id?: string | null
+          project_id?: string | null
+          estimate_date?: string | null
+          overhead_pct?: number | null
+          profit_margin_pct?: number | null
+          total_direct_cost?: number | null
+          grand_total?: number | null
+          notes?: string | null
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          estimate_name?: string
+          tender_id?: string | null
+          project_id?: string | null
+          estimate_date?: string | null
+          overhead_pct?: number | null
+          profit_margin_pct?: number | null
+          total_direct_cost?: number | null
+          grand_total?: number | null
+          notes?: string | null
+          is_deleted?: boolean
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      estimation_items: {
+        Row: {
+          id: string
+          estimation_id: string
+          item_order: number | null
+          description: string | null
+          unit: string | null
+          quantity: number | null
+          rate: number | null
+          amount: number | null
+          category: string | null
+          created_at: string
+        }
+        Insert: {
+          estimation_id: string
+          item_order?: number | null
+          description?: string | null
+          unit?: string | null
+          quantity?: number | null
+          rate?: number | null
+          amount?: number | null
+          category?: string | null
+        }
+        Update: {
+          estimation_id?: string
+          item_order?: number | null
+          description?: string | null
+          unit?: string | null
+          quantity?: number | null
+          rate?: number | null
+          amount?: number | null
+          category?: string | null
+        }
+      }
+      ra_bill_deductions: {
+        Row: {
+          id: string
+          ra_bill_id: string
+          deduction_type: string
+          label: string
+          percentage: number | null
+          amount: number
+          created_at: string
+        }
+        Insert: {
+          ra_bill_id: string
+          deduction_type: string
+          label: string
+          percentage?: number | null
+          amount: number
+        }
+        Update: {
+          ra_bill_id?: string
+          deduction_type?: string
+          label?: string
+          percentage?: number | null
+          amount?: number
+        }
+      }
+      ra_bill_payments: {
+        Row: {
+          id: string
+          ra_bill_id: string
+          project_id: string
+          amount_received: number
+          payment_date: string
+          payment_mode: string | null
+          reference_no: string | null
+          remarks: string | null
+          is_deleted: boolean
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          ra_bill_id: string
+          project_id: string
+          amount_received: number
+          payment_date: string
+          payment_mode?: string | null
+          reference_no?: string | null
+          remarks?: string | null
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+        Update: {
+          ra_bill_id?: string
+          project_id?: string
+          amount_received?: number
+          payment_date?: string
+          payment_mode?: string | null
+          reference_no?: string | null
+          remarks?: string | null
+          is_deleted?: boolean
+          created_by?: string | null
+        }
+      }
     }
     Views: Record<string, never>
     Functions: {

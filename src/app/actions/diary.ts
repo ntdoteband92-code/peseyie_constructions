@@ -77,6 +77,7 @@ export async function createDiaryEntry(_prevState: any, formData: FormData): Pro
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('diary_entries').insert({
       ...validated.data,
+      written_by: user?.id,
       created_by: user?.id,
     } as any)
     if (error) return { error: error.message }
@@ -142,7 +143,7 @@ export async function createDocument(_prevState: any, formData: FormData): Promi
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('documents').insert({
       ...validated.data,
-      uploaded_by: user?.id,
+      created_by: user?.id,
     } as any)
     if (error) return { error: error.message }
     revalidatePath('/documents')

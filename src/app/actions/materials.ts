@@ -74,9 +74,9 @@ const MaterialInwardSchema = z.object({
   quantity: z.coerce.number().min(0.01, 'Quantity must be positive'),
   rate_per_unit: z.coerce.number().min(0),
   total_amount: z.coerce.number().min(0),
-  supplier_name: z.string().optional(),
-  invoice_number: z.string().optional(),
-  vehicle_number: z.string().optional(),
+  vendor_id: z.string().optional(),
+  invoice_no: z.string().optional(),
+  vehicle_no: z.string().optional(),
   received_by: z.string().optional(),
   quality_note: z.string().optional(),
 })
@@ -119,21 +119,21 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
 
 // Explosives Register (special compliance module)
 const ExplosiveSchema = z.object({
-  explosive_type: z.string().min(1, 'Type is required'),
-  license_number: z.string().optional(),
-  license_expiry: z.string().optional(),
-  magazine_location: z.string().optional(),
-  inward_date: z.string().min(1, 'Date is required'),
-  quantity_in: z.coerce.number().min(0),
-  source: z.string().optional(),
-  invoice_number: z.string().optional(),
-  transport_permit: z.string().optional(),
-  issue_date: z.string().optional(),
-  quantity_out: z.coerce.number().optional().nullable(),
-  shot_number: z.string().optional(),
-  issued_to: z.string().optional(),
-  remarks: z.string().optional(),
+  license_id: z.string().uuid().optional(),
+  project_id: z.string().uuid().optional(),
+  entry_date: z.string().min(1, 'Date is required'),
   entry_type: z.enum(['inward', 'issue', 'return']),
+  explosive_type: z.string().min(1, 'Type is required'),
+  quantity: z.coerce.number().min(0),
+  source_dealer: z.string().optional(),
+  transport_permit: z.string().optional(),
+  invoice_no: z.string().optional(),
+  blast_shot_ref: z.string().optional(),
+  issued_to: z.string().optional(),
+  received_by: z.string().optional(),
+  is_correction: z.boolean().optional(),
+  correction_of: z.string().uuid().optional(),
+  correction_reason: z.string().optional(),
 })
 
 export async function getExplosivesLog() {

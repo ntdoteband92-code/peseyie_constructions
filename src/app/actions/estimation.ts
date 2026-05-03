@@ -218,10 +218,10 @@ export async function getProjectFinancials(projectId: string) {
   const supabase = await createAdminClient()
 
   const [projectResult, billsResult, expensesResult, materialsResult] = await Promise.all([
-    supabase.from('projects').select('contract_value, project_name, project_value').eq('id', projectId).single() as any,
+    supabase.from('projects').select('contract_value, project_name').eq('id', projectId).single() as any,
     supabase.from('ra_bills').select('gross_amount, net_payable, certified_amount, status').eq('project_id', projectId).eq('is_deleted', false) as any,
     supabase.from('expenses').select('category, amount').eq('project_id', projectId).eq('is_deleted', false) as any,
-    supabase.from('material_inward').select('quantity, unit_rate').eq('project_id', projectId).eq('is_deleted', false) as any,
+    supabase.from('material_inward').select('quantity, rate_per_unit').eq('project_id', projectId).eq('is_deleted', false) as any,
   ])
 
   const project = projectResult.data
@@ -231,7 +231,7 @@ export async function getProjectFinancials(projectId: string) {
 
   const totalBilled = bills.reduce((s: number, b: any) => s + (b.net_payable ?? b.gross_amount ?? 0), 0)
   const totalSpent = expenses.reduce((s: number, e: any) => s + e.amount, 0)
-  const totalMaterials = materials.reduce((s: number, m: any) => s + (m.quantity ?? 0) * (m.unit_rate ?? 0), 0)
+  const totalMaterials = materials.reduce((s: number, m: any) => s + (m.quantity ?? 0) * (m.rate_per_unit ?? 0), 0)
   const contractValue = project?.contract_value ?? project?.project_value ?? 0
 
   const netMargin = totalBilled - totalSpent

@@ -86,8 +86,8 @@ export default function EquipmentClient({
   const filteredEquipment = useMemo(() => {
     return equipment.filter(e => {
       const matchesSearch = search === '' ||
-        e.name?.toLowerCase().includes(search.toLowerCase()) ||
-        e.registration_number?.toLowerCase().includes(search.toLowerCase()) ||
+        e.equipment_name?.toLowerCase().includes(search.toLowerCase()) ||
+        e.registration_no?.toLowerCase().includes(search.toLowerCase()) ||
         e.make?.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === 'all' || e.status === statusFilter
       const matchesType = typeFilter === 'all' || e.equipment_type === typeFilter
@@ -98,8 +98,8 @@ export default function EquipmentClient({
   const filteredVehicles = useMemo(() => {
     return vehicles.filter(v => {
       const matchesSearch = search === '' ||
-        v.name?.toLowerCase().includes(search.toLowerCase()) ||
-        v.registration_number?.toLowerCase().includes(search.toLowerCase()) ||
+        v.vehicle_name?.toLowerCase().includes(search.toLowerCase()) ||
+        v.registration_no?.toLowerCase().includes(search.toLowerCase()) ||
         v.make?.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === 'all' || v.status === statusFilter
       return matchesSearch && matchesStatus
@@ -240,7 +240,7 @@ export default function EquipmentClient({
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{item.name}</CardTitle>
+                        <CardTitle className="text-base">{item.equipment_name}</CardTitle>
                         <p className="text-xs text-gray-500">{item.equipment_type}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status?.bg} ${status?.text}`}>
@@ -250,9 +250,9 @@ export default function EquipmentClient({
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
                     {item.make && <p className="text-gray-600">{item.make} {item.model}</p>}
-                    {item.registration_number && <p className="text-gray-500 font-mono text-xs">{item.registration_number}</p>}
-                    {item.ownership === 'hired' && item.hire_vendor_name && (
-                      <p className="text-xs text-blue-600">Hired: {item.hire_vendor_name}</p>
+                    {item.registration_no && <p className="text-gray-500 font-mono text-xs">{item.registration_no}</p>}
+                    {item.ownership === 'hired' && item.hire_firm_name && (
+                      <p className="text-xs text-blue-600">Hired: {item.hire_firm_name}</p>
                     )}
                     {item.project && <p className="text-xs text-gray-500">Project: {item.project.project_name}</p>}
                     <div className="pt-2 flex items-center justify-between">
@@ -291,7 +291,7 @@ export default function EquipmentClient({
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{item.name}</CardTitle>
+                        <CardTitle className="text-base">{item.vehicle_name}</CardTitle>
                         <p className="text-xs text-gray-500">{item.vehicle_type}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status?.bg} ${status?.text}`}>
@@ -300,14 +300,14 @@ export default function EquipmentClient({
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
-                    {item.registration_number && <p className="text-gray-500 font-mono text-xs">{item.registration_number}</p>}
+                    {item.registration_no && <p className="text-gray-500 font-mono text-xs">{item.registration_no}</p>}
                     {item.make && <p className="text-gray-600">{item.make} {item.model}</p>}
-                    {item.ownership === 'hired' && item.hire_vendor_name && (
-                      <p className="text-xs text-blue-600">Hired: {item.hire_vendor_name}</p>
+                    {item.ownership === 'hired' && item.hire_firm_name && (
+                      <p className="text-xs text-blue-600">Hired: {item.hire_firm_name}</p>
                     )}
                     {item.project && <p className="text-xs text-gray-500">Project: {item.project.project_name}</p>}
                     <div className="flex gap-2 pt-2">
-                      {expiring('fitness_certificate_expiry') && (
+                      {expiring('fitness_expiry') && (
                         <span className="text-xs rounded bg-amber-50 text-amber-600 px-2 py-0.5">Fitness Expiring</span>
                       )}
                       {expiring('insurance_expiry') && (
@@ -354,7 +354,7 @@ export default function EquipmentClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Registration Number</label>
-                <input name="registration_number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="registration_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Ownership</label>
@@ -373,7 +373,7 @@ export default function EquipmentClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Assigned Project</label>
-                <select name="assigned_project_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                <select name="current_project_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
                   <option value="">Not Assigned</option>
                   {projects.map(p => <option key={p.id} value={p.id}>{p.project_name}</option>)}
                 </select>
@@ -384,7 +384,7 @@ export default function EquipmentClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Year of Manufacture</label>
-                <input name="year_of_manufacture" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="year" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
             </div>
             <DialogFooter>
@@ -404,7 +404,7 @@ export default function EquipmentClient({
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium">Name *</label>
-                <input name="name" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="vehicle_name" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Type *</label>
@@ -414,7 +414,7 @@ export default function EquipmentClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Registration Number</label>
-                <input name="registration_number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input name="registration_no" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Make</label>
@@ -437,14 +437,14 @@ export default function EquipmentClient({
               </div>
               <div>
                 <label className="text-sm font-medium">Assigned Project</label>
-                <select name="assigned_project_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                <select name="current_project_id" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
                   <option value="">Not Assigned</option>
                   {projects.map(p => <option key={p.id} value={p.id}>{p.project_name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-sm font-medium">Fitness Certificate Expiry</label>
-                <input type="date" name="fitness_certificate_expiry" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input type="date" name="fitness_expiry" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Insurance Expiry</label>

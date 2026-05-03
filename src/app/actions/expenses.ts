@@ -41,8 +41,10 @@ const ExpenseSchema = z.object({
   paid_to: z.string().optional(),
   payment_mode: z.enum(['cash', 'bank_transfer', 'neft_rtgs', 'cheque', 'upi']).optional(),
   gst_amount: z.coerce.number().optional().nullable(),
-  gst_invoice_number: z.string().optional(),
+  gst_invoice_no: z.string().optional(),
   tds_deducted: z.coerce.number().optional().nullable(),
+  vendor_id: z.string().uuid().optional().nullable(),
+  receipt_url: z.string().optional(),
   notes: z.string().optional(),
 })
 

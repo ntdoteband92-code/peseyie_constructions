@@ -226,7 +226,7 @@ export default function MusterRollClient({ projects }: { projects: { id: string;
                   {data.workers.map((worker: any, idx: number) => (
                     <tr key={worker.id} className="hover:bg-amber-50/30">
                       <td className="p-2 border border-gray-200 text-gray-400">{idx + 1}</td>
-                      <td className="p-2 border border-gray-200 font-medium whitespace-nowrap">{worker.name}</td>
+                      <td className="p-2 border border-gray-200 font-medium whitespace-nowrap">{worker.worker_name}</td>
                       <td className="p-2 border border-gray-200 text-gray-500 whitespace-nowrap">{worker.trade ?? '—'}</td>
                       <td className="p-2 border border-gray-200 text-right font-mono">₹{worker.dailyWage.toLocaleString('en-IN')}</td>
                       {days.map(d => {
