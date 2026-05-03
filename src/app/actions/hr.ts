@@ -29,6 +29,7 @@ async function getMyRole(): Promise<AppRole | null> {
 
 async function requireRole(allowedRoles: AppRole[]): Promise<AppRole> {
   const role = await getMyRole()
+  console.log('[requireRole] user role:', role, 'allowed:', allowedRoles)
   if (!role || !allowedRoles.includes(role)) throw new Error('Unauthorized')
   return role
 }
@@ -75,8 +76,12 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
+    console.log('[createEmployee] rawData:', JSON.stringify(rawData))
     const validated = EmployeeSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    if (!validated.success) {
+      console.log('[createEmployee] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -87,7 +92,10 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
       contact_number: validated.data.contact_number ?? null,
       created_by: user?.id,
     } as any)
-    if (error) return { error: error.message }
+    if (error) {
+      console.log('[createEmployee] DB error:', error)
+      return { error: error.message }
+    }
     revalidatePath('/hr')
     return { success: true }
   } catch (err) {
@@ -178,8 +186,12 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
+    console.log('[createAdvance] rawData:', JSON.stringify(rawData))
     const validated = AdvanceSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    if (!validated.success) {
+      console.log('[createAdvance] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
