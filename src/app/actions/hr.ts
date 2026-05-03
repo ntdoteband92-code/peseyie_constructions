@@ -59,7 +59,8 @@ const EmployeeSchema = z.object({
   esi_applicable: z.boolean().optional(),
   bank_account_no: z.string().optional(),
   bank_ifsc: z.string().optional(),
-  status: z.enum(['active', 'inactive', 'left']).default('active'),
+  status: z.enum(['active', 'inactive', 'left']).optional(),
+  is_active: z.boolean().optional(),
 })
 
 export async function getEmployees() {
@@ -106,7 +107,8 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
       employment_type: validated.data.employment_type || 'direct',
       wage_type: validated.data.wage_type || 'daily_rate',
       wage_rate: Number(validated.data.wage_rate) || 0,
-      status: validated.data.status || 'active',
+      is_active: true,
+      is_deleted: false,
       created_by: user?.id,
     } as any)
     if (error) {

@@ -67,14 +67,14 @@ export default function HRClient({
         e.full_name?.toLowerCase().includes(search.toLowerCase()) ||
         e.contact_number?.includes(search)
       const matchesRole = roleFilter === 'all' || e.role === roleFilter
-      const matchesStatus = statusFilter === 'all' || e.status === statusFilter
+      const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? e.is_active : !e.is_active)
       return matchesSearch && matchesRole && matchesStatus
     })
   }, [employees, search, roleFilter, statusFilter])
 
   const advanceStats = useMemo(() => {
     const total = advances.reduce((s, a) => s + (a.amount_given ?? 0), 0)
-    const activeEmployees = employees.filter(e => e.status === 'active').length
+    const activeEmployees = employees.filter(e => e.is_active).length
     return { total, activeEmployees, count: advances.length }
   }, [advances, employees])
 
@@ -180,19 +180,19 @@ export default function HRClient({
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredEmployees.map(emp => {
-                const status = STATUS_COLORS[emp.status ?? 'active']
-                return (
-                  <Card key={emp.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                          <span className="text-amber-700 font-semibold text-sm">
-                            {emp.full_name?.split(' ').map((n: any) => n[0]).join('').slice(0, 2)}
+                const status = emp.is_active ? 'active' : 'inactive'
+                  return (
+                    <Card key={emp.id} className="hover:shadow-sm transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                            <span className="text-amber-700 font-semibold text-sm">
+                              {emp.full_name?.split(' ').map((n: any) => n[0]).join('').slice(0, 2)}
+                            </span>
+                          </div>
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status ? STATUS_COLORS.active.bg + ' ' + STATUS_COLORS.active.text : STATUS_COLORS.inactive.bg + ' ' + STATUS_COLORS.inactive.text}`}>
+                            {emp.is_active ? 'Active' : 'Inactive'}
                           </span>
-                        </div>
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status?.bg} ${status?.text}`}>
-                          {emp.status}
-                        </span>
                       </div>
                       <h3 className="font-semibold text-gray-900">{emp.full_name}</h3>
                       <p className="text-xs text-gray-500 mb-2">{emp.role}</p>
@@ -340,7 +340,7 @@ export default function HRClient({
               <label className="text-sm font-medium">Employee *</label>
               <select name="employee_id" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Select employee</option>
-                {employees.filter(e => e.status === 'active').map(e => (
+                {employees.filter(e => e.is_active).map(e => (
                   <option key={e.id} value={e.id}>{e.full_name} ({e.role})</option>
                 ))}
               </select>
