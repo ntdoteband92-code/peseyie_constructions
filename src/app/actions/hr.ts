@@ -109,7 +109,6 @@ export async function getAttendance(projectId: string, month: string) {
     .eq('project_id', projectId)
     .gte('work_date', startDate)
     .lte('work_date', endDate)
-    .eq('is_deleted', false)
     .order('work_date')
   if (error) throw error
   return data
@@ -117,7 +116,7 @@ export async function getAttendance(projectId: string, month: string) {
 
 export async function markAttendance(entries: {
   project_id: string
-  entry_date: string
+  work_date: string
   employee_id: string
   status: string
   ot_hours?: number
@@ -129,7 +128,11 @@ export async function markAttendance(entries: {
     const adminClient = await createAdminClient()
 
     const records = entries.map(e => ({
-      ...e,
+      project_id: e.project_id,
+      work_date: e.work_date,
+      employee_id: e.employee_id,
+      status: e.status,
+      ot_hours: e.ot_hours,
       created_by: user?.id,
     }))
 

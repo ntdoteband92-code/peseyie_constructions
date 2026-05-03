@@ -40,7 +40,7 @@ export async function getReportSummary() {
     supabase.from('projects').select('id, project_name, status, contract_value, start_date, expected_end_date', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('ra_bills').select('id, bill_number, bill_date, gross_amount, status, project_id', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('expenses').select('amount, category, project_id, expense_date', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('employees').select('id, full_name, role, wage_rate, is_active', { count: 'exact' }).eq('is_deleted', false),
+    supabase.from('employees').select('id, full_name, role, wage_rate, is_active', { count: 'exact' }),
     supabase.from('material_inward').select('id, quantity, rate_per_unit, project_id, inward_date', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('diary_entries').select('id, entry_date, project_id', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('projects').select('id', { count: 'exact', head: true }).eq('is_deleted', false).then(res => console.log(`[${cacheBuster}] Projects count:`, res.count)),
