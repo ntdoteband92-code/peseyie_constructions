@@ -109,8 +109,19 @@ export async function createDocument(_prevState: any, formData: FormData): Promi
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = CreateDocumentSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createDocument] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      project_id: rawData.project_id === '' ? null : rawData.project_id,
+      file_size_kb: rawData.file_size_kb === '' ? null : Number(rawData.file_size_kb),
+    }
+
+    const validated = CreateDocumentSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createDocument] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

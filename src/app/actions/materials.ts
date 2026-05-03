@@ -52,8 +52,18 @@ export async function createMaterial(_prevState: any, formData: FormData): Promi
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = MaterialSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createMaterial] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      standard_rate: rawData.standard_rate === '' ? null : Number(rawData.standard_rate),
+    }
+
+    const validated = MaterialSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createMaterial] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -98,8 +108,20 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = MaterialInwardSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createMaterialInward] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      quantity: rawData.quantity === '' ? 0 : Number(rawData.quantity),
+      rate_per_unit: rawData.rate_per_unit === '' ? 0 : Number(rawData.rate_per_unit),
+      total_amount: rawData.total_amount === '' ? null : Number(rawData.total_amount),
+    }
+
+    const validated = MaterialInwardSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createMaterialInward] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -151,8 +173,20 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = ExplosiveSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createExplosiveEntry] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      license_id: rawData.license_id === '' ? null : rawData.license_id,
+      project_id: rawData.project_id === '' ? null : rawData.project_id,
+      quantity: rawData.quantity === '' ? 0 : Number(rawData.quantity),
+    }
+
+    const validated = ExplosiveSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createExplosiveEntry] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

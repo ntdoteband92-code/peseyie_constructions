@@ -137,8 +137,27 @@ export async function createBlastLog(_prevState: any, formData: FormData): Promi
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = BlastLogSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createBlastLog] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      bench_height_m: rawData.bench_height_m === '' ? null : Number(rawData.bench_height_m),
+      hole_depth_m: rawData.hole_depth_m === '' ? null : Number(rawData.hole_depth_m),
+      holes_drilled: rawData.holes_drilled === '' ? null : Number(rawData.holes_drilled),
+      hole_diameter_mm: rawData.hole_diameter_mm === '' ? null : Number(rawData.hole_diameter_mm),
+      burden_m: rawData.burden_m === '' ? null : Number(rawData.burden_m),
+      spacing_m: rawData.spacing_m === '' ? null : Number(rawData.spacing_m),
+      total_explosive_kg: rawData.total_explosive_kg === '' ? null : Number(rawData.total_explosive_kg),
+      detonators_count: rawData.detonators_count === '' ? null : Number(rawData.detonators_count),
+      misfires_count: rawData.misfires_count === '' ? 0 : Number(rawData.misfires_count),
+      volume_blasted_cum: rawData.volume_blasted_cum === '' ? null : Number(rawData.volume_blasted_cum),
+    }
+
+    const validated = BlastLogSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createBlastLog] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('blasting_shots').insert(validated.data as any)

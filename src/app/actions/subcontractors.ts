@@ -76,8 +76,13 @@ export async function createSubcontractor(_prevState: any, formData: FormData): 
   try {
     await requireRole(['admin', 'manager'])
     const rawData = Object.fromEntries(formData)
+    console.log('[createSubcontractor] rawData:', JSON.stringify(rawData))
+
     const validated = SubcontractorSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    if (!validated.success) {
+      console.log('[createSubcontractor] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('subcontractors').insert(validated.data as any)
@@ -159,8 +164,21 @@ export async function createWorkOrder(_prevState: any, formData: FormData): Prom
   try {
     await requireRole(['admin', 'manager'])
     const rawData = Object.fromEntries(formData)
-    const validated = WorkOrderSchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createWorkOrder] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      total_value: rawData.total_value === '' ? 0 : Number(rawData.total_value),
+      quantity: rawData.quantity === '' ? null : Number(rawData.quantity),
+      rate: rawData.rate === '' ? null : Number(rawData.rate),
+      tds_pct: rawData.tds_pct === '' ? null : Number(rawData.tds_pct),
+    }
+
+    const validated = WorkOrderSchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createWorkOrder] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('work_orders').insert(validated.data as any)

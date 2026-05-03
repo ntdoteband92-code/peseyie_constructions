@@ -30,7 +30,7 @@ const MATERIAL_CATEGORIES = [
   'Detonator', 'Fuel HSD', 'Lubricants', 'Timber', 'Hardware', 'Other',
 ]
 
-const UNITS = ['MT', 'CFT', 'CUM', 'Bags', 'Litres', 'KG', 'Nos', 'RMT']
+const UNITS = ['mt', 'cft', 'cum', 'bags', 'litres', 'kg', 'nos', 'rmt']
 
 function formatINR(amount: number | null | undefined): string {
   if (amount == null) return '—'
@@ -366,12 +366,12 @@ export default function MaterialsClient({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Quantity *</label>
-                <input type="number" name="quantity" min="0.01" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <label className="text-sm font-medium">Quantity (units) *</label>
+                <input type="number" name="quantity" min="0.01" required placeholder="Enter quantity" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-sm font-medium">Rate per Unit (₹)</label>
-                <input type="number" name="rate_per_unit" min="0" required className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                <input type="number" name="rate_per_unit" min="0" required placeholder="₹ per unit" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
             </div>
             <div>

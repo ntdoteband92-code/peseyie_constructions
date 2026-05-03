@@ -110,9 +110,20 @@ export async function createEquipment(_prevState: EquipmentFormState, formData: 
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = EquipmentSchema.safeParse(rawData)
+    console.log('[createEquipment] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      current_project_id: rawData.current_project_id === '' ? null : rawData.current_project_id,
+      hire_rate: rawData.hire_rate === '' ? null : rawData.hire_rate,
+      purchase_cost: rawData.purchase_cost === '' ? null : rawData.purchase_cost,
+      year: rawData.year === '' ? null : rawData.year,
+    }
+
+    const validated = EquipmentSchema.safeParse(rawDataClean)
 
     if (!validated.success) {
+      console.log('[createEquipment] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
     }
 

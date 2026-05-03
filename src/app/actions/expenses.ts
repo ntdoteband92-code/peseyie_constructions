@@ -78,9 +78,21 @@ export async function createExpense(_prevState: ExpenseFormState, formData: Form
   try {
     await requireRole(['admin', 'manager', 'accountant'])
     const rawData = Object.fromEntries(formData)
-    const validated = ExpenseSchema.safeParse(rawData)
+    console.log('[createExpense] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      project_id: rawData.project_id === '' ? null : rawData.project_id,
+      vendor_id: rawData.vendor_id === '' ? null : rawData.vendor_id,
+      amount: rawData.amount === '' ? 0 : Number(rawData.amount),
+      gst_amount: rawData.gst_amount === '' ? null : Number(rawData.gst_amount),
+      tds_deducted: rawData.tds_deducted === '' ? null : Number(rawData.tds_deducted),
+    }
+
+    const validated = ExpenseSchema.safeParse(rawDataClean)
 
     if (!validated.success) {
+      console.log('[createExpense] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
     }
 
@@ -195,9 +207,19 @@ export async function createIncomeEntry(_prevState: ExpenseFormState, formData: 
   try {
     await requireRole(['admin', 'manager', 'accountant'])
     const rawData = Object.fromEntries(formData)
-    const validated = IncomeSchema.safeParse(rawData)
+    console.log('[createIncomeEntry] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      project_id: rawData.project_id === '' ? null : rawData.project_id,
+      ra_bill_id: rawData.ra_bill_id === '' ? null : rawData.ra_bill_id,
+      amount: rawData.amount === '' ? 0 : Number(rawData.amount),
+    }
+
+    const validated = IncomeSchema.safeParse(rawDataClean)
 
     if (!validated.success) {
+      console.log('[createIncomeEntry] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
     }
 

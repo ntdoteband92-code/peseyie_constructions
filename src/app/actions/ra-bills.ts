@@ -99,9 +99,18 @@ export async function createRaBill(
     await requireRole(['admin', 'manager', 'accountant'])
 
     const rawData = Object.fromEntries(formData)
-    const validated = RaBillSchema.safeParse(rawData)
+    console.log('[createRaBill] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      gross_amount: rawData.gross_amount === '' ? 0 : Number(rawData.gross_amount),
+      certified_amount: rawData.certified_amount === '' ? null : Number(rawData.certified_amount),
+    }
+
+    const validated = RaBillSchema.safeParse(rawDataClean)
 
     if (!validated.success) {
+      console.log('[createRaBill] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return {
         errors: validated.error.flatten().fieldErrors,
         error: 'Validation failed',

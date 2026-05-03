@@ -69,8 +69,18 @@ export async function createDiaryEntry(_prevState: any, formData: FormData): Pro
   try {
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
-    const validated = DiarySchema.safeParse(rawData)
-    if (!validated.success) return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    console.log('[createDiaryEntry] rawData:', JSON.stringify(rawData))
+
+    const rawDataClean = {
+      ...rawData,
+      workers_count: rawData.workers_count === '' ? null : Number(rawData.workers_count),
+    }
+
+    const validated = DiarySchema.safeParse(rawDataClean)
+    if (!validated.success) {
+      console.log('[createDiaryEntry] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
+      return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
