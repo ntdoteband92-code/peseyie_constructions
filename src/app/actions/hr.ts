@@ -85,7 +85,12 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
     console.log('[createEmployee] rawData:', JSON.stringify(rawData))
-    const validated = EmployeeSchema.safeParse(rawData)
+
+    const wageRateRaw = rawData.wage_rate
+    const wageRate = wageRateRaw === '' || wageRateRaw == null ? 0 : Number(wageRateRaw)
+    const rawDataWithNumeric = { ...rawData, wage_rate: isNaN(wageRate) ? 0 : wageRate }
+
+    const validated = EmployeeSchema.safeParse(rawDataWithNumeric)
     if (!validated.success) {
       console.log('[createEmployee] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
@@ -97,11 +102,11 @@ export async function createEmployee(_prevState: any, formData: FormData): Promi
     const { error } = await adminClient.from('employees').insert({
       full_name: validated.data.full_name,
       role: validated.data.role,
-      contact_number: validated.data.contact_number ?? null,
-      employment_type: validated.data.employment_type ?? 'direct',
-      wage_type: validated.data.wage_type ?? 'daily_rate',
-      wage_rate: validated.data.wage_rate ?? 0,
-      status: validated.data.status ?? 'active',
+      contact_number: validated.data.contact_number || null,
+      employment_type: validated.data.employment_type || 'direct',
+      wage_type: validated.data.wage_type || 'daily_rate',
+      wage_rate: Number(validated.data.wage_rate) || 0,
+      status: validated.data.status || 'active',
       created_by: user?.id,
     } as any)
     if (error) {
@@ -199,7 +204,12 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
     await requireRole(['admin', 'manager', 'supervisor'])
     const rawData = Object.fromEntries(formData)
     console.log('[createAdvance] rawData:', JSON.stringify(rawData))
-    const validated = AdvanceSchema.safeParse(rawData)
+
+    const amountGivenRaw = rawData.amount_given
+    const amountGiven = amountGivenRaw === '' || amountGivenRaw == null ? 0 : Number(amountGivenRaw)
+    const rawDataWithNumeric = { ...rawData, amount_given: isNaN(amountGiven) ? 0 : amountGiven }
+
+    const validated = AdvanceSchema.safeParse(rawDataWithNumeric)
     if (!validated.success) {
       console.log('[createAdvance] validation errors:', JSON.stringify(validated.error.flatten().fieldErrors))
       return { errors: validated.error.flatten().fieldErrors, error: 'Validation failed' }
@@ -210,6 +220,7 @@ export async function createAdvance(_prevState: any, formData: FormData): Promis
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('advance_records').insert({
       ...validated.data,
+      amount_given: Number(validated.data.amount_given) || 0,
       created_by: user?.id,
     } as any)
     if (error) return { error: error.message }

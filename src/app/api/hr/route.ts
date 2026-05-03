@@ -14,11 +14,15 @@ export async function POST(request: Request) {
     let result
     if (action === 'createAdvance') {
       const formData = new FormData()
-      Object.entries(payload).forEach(([k, v]) => formData.append(k, String(v)))
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createAdvance(null, formData)
     } else {
       const formData = new FormData()
-      Object.entries(payload).forEach(([k, v]) => formData.append(k, String(v)))
+      for (const [key, value] of Object.entries(payload)) {
+        formData.append(key, value !== null && value !== undefined ? String(value) : '')
+      }
       result = await createEmployee(null, formData)
     }
 
