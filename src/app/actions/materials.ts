@@ -163,7 +163,6 @@ export async function getExplosivesLog() {
   const { data, error } = await supabase
     .from('explosives_register')
     .select('*')
-    .eq('is_deleted', false)
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as any
@@ -196,6 +195,7 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
       ...validated.data,
       created_by: user?.id,
     } as any)
+    console.log('[createExplosiveEntry] Insert result, error:', error)
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }

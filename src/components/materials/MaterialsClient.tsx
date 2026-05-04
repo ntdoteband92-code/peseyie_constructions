@@ -252,10 +252,10 @@ export default function MaterialsClient({
                           <tr key={e.id} className="border-b">
                             <td className="p-2">{formatDate(e.entry_date)}</td>
                             <td className="p-2">{e.explosive_type}</td>
-                            <td className="p-2 text-green-600">{e.entry_type === 'inward' ? `${e.quantity_in}kg` : '—'}</td>
-                            <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity_out}kg` : '—'}</td>
+                            <td className="p-2 text-green-600">{e.entry_type === 'inward' ? `${e.quantity}kg` : '—'}</td>
+                            <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity}kg` : '—'}</td>
                             <td className="p-2 font-medium">{balance}kg</td>
-                            <td className="p-2 text-gray-500 text-xs">{e.remarks}</td>
+                            <td className="p-2 text-gray-500 text-xs">{e.source_dealer || e.invoice_no || '—'}</td>
                           </tr>
                         )
                       })}
