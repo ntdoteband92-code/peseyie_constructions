@@ -73,9 +73,9 @@ export default function MaterialsClient({
   const explosivesBalance = useMemo(() => {
     let balance = 0
     for (const e of explosives) {
-      if (e.entry_type === 'inward') balance += e.quantity_in ?? 0
-      else if (e.entry_type === 'issue') balance -= e.quantity_out ?? 0
-      else if (e.entry_type === 'return') balance += e.quantity_out ?? 0
+      if (e.entry_type === 'inward') balance += e.quantity ?? 0
+      else if (e.entry_type === 'issue') balance -= e.quantity ?? 0
+      else if (e.entry_type === 'return') balance += e.quantity ?? 0
     }
     return balance
   }, [explosives])
@@ -108,6 +108,18 @@ export default function MaterialsClient({
       const res = await fetch(`/api/materials?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       toast.success('Material deleted')
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    }
+  }
+
+  const handleDeleteExplosive = async (id: string) => {
+    if (!confirm('Delete this explosive entry?')) return
+    try {
+      const res = await fetch(`/api/materials?id=${id}&type=explosive`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      toast.success('Explosive entry deleted')
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete')
@@ -274,6 +286,11 @@ export default function MaterialsClient({
                             <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity}kg` : '—'}</td>
                             <td className="p-2 font-medium">{balance}kg</td>
                             <td className="p-2 text-gray-500 text-xs">{e.source_dealer || e.invoice_no || '—'}</td>
+                            <td className="p-2">
+                              <button onClick={() => handleDeleteExplosive(e.id)} className="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
                           </tr>
                         )
                       })}

@@ -168,7 +168,7 @@ const ExplosiveSchema = z.object({
   entry_date: z.string().min(1, 'Date is required'),
   entry_type: z.enum(['inward', 'issue', 'return']),
   explosive_type: z.string().min(1, 'Type is required'),
-  quantity: z.coerce.number().min(0),
+  quantity: z.coerce.number().min(0.01, 'Quantity must be greater than 0'),
   source_dealer: z.string().optional(),
   transport_permit: z.string().optional(),
   invoice_no: z.string().optional(),
@@ -221,6 +221,19 @@ export async function createExplosiveEntry(_prevState: any, formData: FormData):
     if (error) return { error: error.message }
     revalidatePath('/materials')
     return { success: true }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Something went wrong' }
+  }
+}
+
+export async function deleteExplosiveEntry(id: string): Promise<{ error?: string }> {
+  try {
+    await requireRole(['admin', 'manager'])
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('explosives_register') as any).delete().eq('id', id)
+    if (error) return { error: error.message }
+    revalidatePath('/materials')
+    return {}
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Something went wrong' }
   }
