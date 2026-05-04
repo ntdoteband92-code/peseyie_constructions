@@ -77,6 +77,19 @@ export async function createMaterial(_prevState: any, formData: FormData): Promi
   }
 }
 
+export async function deleteMaterial(id: string): Promise<{ error?: string }> {
+  try {
+    await requireRole(['admin', 'manager'])
+    const adminClient = await createAdminClient()
+    const { error } = await (adminClient.from('materials') as any).update({ is_deleted: true }).eq('id', id)
+    if (error) return { error: error.message }
+    revalidatePath('/materials')
+    return {}
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Something went wrong' }
+  }
+}
+
 // Material Inward
 const MaterialInwardSchema = z.object({
   material_id: z.string().uuid().min(1, 'Material is required'),
@@ -84,6 +97,7 @@ const MaterialInwardSchema = z.object({
   quantity: z.coerce.number().min(1, 'Quantity must be at least 1'),
   rate_per_unit: z.coerce.number().min(0),
   total_amount: z.coerce.number().min(0),
+  inward_date: z.string().min(1, 'Date is required'),
   vendor_id: z.string().optional(),
   invoice_no: z.string().optional(),
   vehicle_no: z.string().optional(),
@@ -115,6 +129,7 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
       quantity: rawData.quantity === '' ? 0 : Number(rawData.quantity),
       rate_per_unit: rawData.rate_per_unit === '' ? 0 : Number(rawData.rate_per_unit),
       total_amount: rawData.total_amount === '' ? null : Number(rawData.total_amount),
+      vendor_id: rawData.vendor_id === '' ? null : rawData.vendor_id,
     }
 
     const validated = MaterialInwardSchema.safeParse(rawDataClean)
@@ -127,8 +142,15 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
     const { data: { user } } = await supabase.auth.getUser()
     const adminClient = await createAdminClient()
     const { error } = await adminClient.from('material_inward').insert({
-      ...validated.data,
-      inward_date: (validated.data as any).inward_date || new Date().toISOString().split('T')[0],
+      material_id: validated.data.material_id,
+      project_id: validated.data.project_id,
+      quantity: validated.data.quantity,
+      rate_per_unit: validated.data.rate_per_unit,
+      total_amount: validated.data.total_amount,
+      inward_date: validated.data.inward_date,
+      vendor_id: validated.data.vendor_id,
+      invoice_no: validated.data.invoice_no,
+      vehicle_no: validated.data.vehicle_no,
       created_by: user?.id,
     } as any)
     if (error) return { error: error.message }

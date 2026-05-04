@@ -11,6 +11,7 @@ import {
   ArrowUpCircle,
   AlertTriangle,
   ShieldAlert,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -101,6 +102,18 @@ export default function MaterialsClient({
     }
   }
 
+  const handleDeleteMaterial = async (id: string) => {
+    if (!confirm('Delete this material?')) return
+    try {
+      const res = await fetch(`/api/materials?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      toast.success('Material deleted')
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -152,7 +165,12 @@ export default function MaterialsClient({
                         <h3 className="font-semibold text-gray-900">{m.material_name}</h3>
                         <span className="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 mt-1">{m.category}</span>
                       </div>
-                      <span className="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded">{m.unit}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded">{m.unit}</span>
+                        <button onClick={() => handleDeleteMaterial(m.id)} className="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     {m.standard_rate && (
                       <p className="text-sm text-gray-600 mt-2">Rate: {formatINR(m.standard_rate)}/{m.unit}</p>
@@ -373,6 +391,10 @@ export default function MaterialsClient({
                 <label className="text-sm font-medium">Rate per Unit (₹)</label>
                 <input type="number" name="rate_per_unit" min="0" required placeholder="₹ per unit" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Date *</label>
+              <input type="date" name="inward_date" required defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="text-sm font-medium">Supplier</label>
