@@ -251,53 +251,79 @@ export default function MaterialsClient({
               <Button variant="outline" size="sm" onClick={() => setShowExplosiveDialog(false)}>×</Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <p className="text-sm font-medium text-red-800">Current Magazine Balance: {explosivesBalance} kg</p>
-                <p className="text-xs text-red-600 mt-1">This balance must always be accurate for regulatory compliance.</p>
-              </div>
+              {(() => {
+                type E = { id: string; entry_date: string; entry_type: string; quantity: number; explosive_type: string; source_dealer: string; invoice_no: string }
+                const grouped: Record<string, E[]> = {}
+                for (const e of explosives as E[]) {
+                  const type = e.explosive_type || 'Unknown'
+                  if (!grouped[type]) grouped[type] = []
+                  grouped[type].push(e)
+                }
 
-              {explosives.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gray-50">
-                        <th className="text-left p-2 font-medium text-gray-500">Date</th>
-                        <th className="text-left p-2 font-medium text-gray-500">Type</th>
-                        <th className="text-left p-2 font-medium text-gray-500">In</th>
-                        <th className="text-left p-2 font-medium text-gray-500">Out</th>
-                        <th className="text-left p-2 font-medium text-gray-500">Balance</th>
-                        <th className="text-left p-2 font-medium text-gray-500">Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {explosives.map((e, i) => {
-                        let balance = 0
-                        for (let j = 0; j <= i; j++) {
-                          const entry = explosives[j]
-                          if (entry.entry_type === 'inward') balance += entry.quantity ?? 0
-                          else if (entry.entry_type === 'issue') balance -= entry.quantity ?? 0
-                          else if (entry.entry_type === 'return') balance += entry.quantity ?? 0
-                        }
-                        return (
-                          <tr key={e.id} className="border-b">
-                            <td className="p-2">{formatDate(e.entry_date)}</td>
-                            <td className="p-2">{e.explosive_type}</td>
-                            <td className="p-2 text-green-600">{e.entry_type === 'inward' ? `${e.quantity}kg` : '—'}</td>
-                            <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity}kg` : '—'}</td>
-                            <td className="p-2 font-medium">{balance}kg</td>
-                            <td className="p-2 text-gray-500 text-xs">{e.source_dealer || e.invoice_no || '—'}</td>
-                            <td className="p-2">
-                              <button onClick={() => handleDeleteExplosive(e.id)} className="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                const typeBalances: Record<string, number> = {}
+                for (const type in grouped) {
+                  let balance = 0
+                  for (const entry of grouped[type]) {
+                    if (entry.entry_type === 'inward') balance += entry.quantity ?? 0
+                    else if (entry.entry_type === 'issue') balance -= entry.quantity ?? 0
+                    else if (entry.entry_type === 'return') balance += entry.quantity ?? 0
+                  }
+                  typeBalances[type] = balance
+                }
+
+                const totalBalance = Object.values(typeBalances).reduce((sum, b) => sum + b, 0)
+
+return (
+                  <>
+                    {Object.keys(grouped).map(type => {
+                      const currentStock = typeBalances[type]
+                      return (
+                        <div key={type} className="border border-red-200 rounded-lg p-4 mb-4">
+                          <div className="flex justify-between items-center mb-3 bg-red-50 p-3 rounded-lg">
+                            <h4 className="font-bold text-red-800 text-lg">{type}</h4>
+                            <div className="text-right">
+                              <span className="text-xs text-red-600 block">Current Stock</span>
+                              <span className="text-xl font-bold text-red-700">{currentStock} kg</span>
+                            </div>
+                          </div>
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b bg-gray-50">
+                                <th className="text-left p-2 font-medium text-gray-500">Date</th>
+                                <th className="text-left p-2 font-medium text-gray-500">In</th>
+                                <th className="text-left p-2 font-medium text-gray-500">Out</th>
+                                <th className="text-left p-2 font-medium text-gray-500">Remarks</th>
+                                <th className="text-left p-2 font-medium text-gray-500"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {grouped[type].map((e) => {
+                                return (
+                                  <tr key={e.id} className="border-b">
+                                    <td className="p-2">{formatDate(e.entry_date)}</td>
+                                    <td className="p-2 text-green-600">{e.entry_type === 'inward' ? `${e.quantity}kg` : '—'}</td>
+                                    <td className="p-2 text-red-600">{e.entry_type === 'issue' ? `${e.quantity}kg` : '—'}</td>
+                                    <td className="p-2 text-gray-500 text-xs">{e.source_dealer || e.invoice_no || '—'}</td>
+                                    <td className="p-2">
+                                      <button onClick={() => handleDeleteExplosive(e.id)} className="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )
+                    })}
+
+                    {Object.keys(grouped).length === 0 && (
+                      <p className="text-center text-gray-500 py-8">No explosive entries recorded yet.</p>
+                    )}
+                  </>
+                )
+              })()}
 
               <form action={(fd) => handleSubmit(fd, 'explosive')} className="space-y-4 border-t pt-4">
                 <input type="hidden" name="action" value="createExplosive" />

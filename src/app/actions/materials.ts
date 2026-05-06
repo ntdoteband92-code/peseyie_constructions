@@ -92,17 +92,17 @@ export async function deleteMaterial(id: string): Promise<{ error?: string }> {
 
 // Material Inward
 const MaterialInwardSchema = z.object({
-  material_id: z.string().uuid().min(1, 'Material is required'),
-  project_id: z.string().uuid().min(1, 'Project is required'),
+  material_id: z.string().min(1, 'Material is required'),
+  project_id: z.string().min(1, 'Project is required'),
   quantity: z.coerce.number().min(1, 'Quantity must be at least 1'),
   rate_per_unit: z.coerce.number().min(0),
-  total_amount: z.coerce.number().min(0),
+  total_amount: z.coerce.number().min(0).optional().nullable(),
   inward_date: z.string().min(1, 'Date is required'),
-  vendor_id: z.string().optional(),
-  invoice_no: z.string().optional(),
-  vehicle_no: z.string().optional(),
-  received_by: z.string().optional(),
-  quality_note: z.string().optional(),
+  vendor_id: z.string().optional().nullable(),
+  invoice_no: z.string().optional().nullable(),
+  vehicle_no: z.string().optional().nullable(),
+  received_by: z.string().optional().nullable(),
+  quality_note: z.string().optional().nullable(),
 })
 
 export async function getMaterialInward(projectId?: string) {
@@ -128,7 +128,7 @@ export async function createMaterialInward(_prevState: any, formData: FormData):
       ...rawData,
       quantity: rawData.quantity === '' ? 0 : Number(rawData.quantity),
       rate_per_unit: rawData.rate_per_unit === '' ? 0 : Number(rawData.rate_per_unit),
-      total_amount: rawData.total_amount === '' ? null : Number(rawData.total_amount),
+      total_amount: rawData.total_amount === '' || isNaN(Number(rawData.total_amount)) ? null : Number(rawData.total_amount),
       vendor_id: rawData.vendor_id === '' ? null : rawData.vendor_id,
     }
 
